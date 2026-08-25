@@ -794,6 +794,47 @@ class ServerEngine {
     this.state = this.loadState();
     this.listeners = [];
     this.timer = null;
+
+    // Dynamically detect device's actual network IP address on startup
+    this.detectNetworkIp();
+  }
+
+  async detectNetworkIp() {
+    // Fetch device's real WAN/Internet Public IP
+    try {
+      if (typeof fetch === 'function') {
+        const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        const timer = controller ? setTimeout(() => controller.abort(), 4000) : null;
+        const res = await fetch('https://api.ipify.org?format=json', {
+          signal: controller ? controller.signal : undefined
+        });
+        if (timer) clearTimeout(timer);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.ip && /^\d+\.\d+\.\d+\.\d+$/.test(data.ip)) {
+            this.state.publicIp = data.ip;
+            this.log(`Detected device Public WAN IP: ${data.ip}`, 'NET');
+            this.notify();
+            this.saveState();
+          }
+        }
+      }
+    } catch (e) {
+      try {
+        if (typeof fetch === 'function') {
+          const res2 = await fetch('https://icanhazip.com');
+          if (res2.ok) {
+            const rawIp = (await res2.text()).trim();
+            if (/^\d+\.\d+\.\d+\.\d+$/.test(rawIp)) {
+              this.state.publicIp = rawIp;
+              this.log(`Detected device Public WAN IP: ${rawIp}`, 'NET');
+              this.notify();
+              this.saveState();
+            }
+          }
+        }
+      } catch (err) {}
+    }
   }
 
   loadState() {

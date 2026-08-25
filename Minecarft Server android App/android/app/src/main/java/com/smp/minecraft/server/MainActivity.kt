@@ -12,6 +12,9 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import org.json.JSONObject
 import java.io.File
+import java.net.Inet4Address
+import java.net.NetworkInterface
+import java.util.Collections
 
 class MainActivity : AppCompatActivity() {
 
@@ -44,6 +47,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     inner class AndroidServerBridge(private val context: Context) {
+
+        @JavascriptInterface
+        fun getLocalIpAddress(): String {
+            try {
+                val interfaces = Collections.list(NetworkInterface.getNetworkInterfaces())
+                for (intf in interfaces) {
+                    val addrs = Collections.list(intf.inetAddresses)
+                    for (addr in addrs) {
+                        if (!addr.isLoopbackAddress && addr is Inet4Address) {
+                            return addr.hostAddress ?: ""
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                // Fallback
+            }
+            return ""
+        }
 
         @JavascriptInterface
         fun getDeviceInfo(): String {
