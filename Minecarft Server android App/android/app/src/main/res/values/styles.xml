@@ -1,0 +1,9 @@
+<resources>
+    <style name="Theme.SMPMinecraftServerManager" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">#22c55e</item>
+        <item name="colorPrimaryVariant">#16a34a</item>
+        <item name="colorOnPrimary">#ffffff</item>
+        <item name="android:statusBarColor">#090d16</item>
+        <item name="android:windowBackground">#090d16</item>
+    </style>
+</resources>

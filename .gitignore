@@ -1,0 +1,15 @@
+# Node & JS Dependencies
+node_modules/
+dist/
+.DS_Store
+*.log
+
+# Android Build Outputs
+android/.gradle/
+android/app/build/
+android/build/
+*.apk
+
+# iOS Build Outputs
+ios/App/Pods/
+ios/App/DerivedData/

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>SMP Minecraft Server Manager</title>
+  <link rel="icon" type="image/png" href="/app-icon.png" />
+  <script type="module" crossorigin src="/assets/index-CuZksN1E.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-IXKZbsmb.css">
+</head>
+<body>
+
+  <!-- Top Header Navigation -->
+  <header class="app-header">
+    <div class="brand-container">
+      <img src="/app-icon.png" alt="SMP Icon" class="brand-icon" />
+      <div>
+        <div class="brand-title">SMP Crossplay</div>
+        <div class="brand-subtitle">Android Server Manager</div>
+      </div>
+    </div>
+
+    <div id="statusPill" class="status-pill stopped">
+      <span class="status-dot"></span>
+      <span id="statusText">STOPPED</span>
+    </div>
+  </header>
+
+  <!-- Main View Container -->
+  <main class="app-content">
+
+    <!-- TAB 1: SERVER DASHBOARD -->
+    <section id="tab-dashboard" class="tab-page">
+      <!-- Quick Control Action Buttons -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎮</span> Server Controls
+        </div>
+        <div class="grid-2" style="margin-bottom: 10px;">
+          <button id="btnStart" class="btn btn-primary">
+            <span>▶</span> Start Server
+          </button>
+          <button id="btnStop" class="btn btn-danger" disabled>
+            <span>⏹</span> Stop Server
+          </button>
+        </div>
+        <div class="grid-2">
+          <button id="btnRestart" class="btn btn-secondary" disabled>
+            <span>🔄</span> Restart
+          </button>
+          <button id="btnOpAdmin" class="btn btn-secondary">
+            <span>🔑</span> Op Player
+          </button>
+        </div>
+      </div>
+
+      <!-- Real-time Stats Grid -->
+      <div class="grid-2" style="margin-bottom: 16px;">
+        <div class="stat-box">
+          <div class="stat-lbl">Players Online</div>
+          <div id="statPlayers" class="stat-val">0 / 20</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-lbl">CPU Usage</div>
+          <div id="statCpu" class="stat-val">0 %</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-lbl">Allocated RAM</div>
+          <div id="statRam" class="stat-val">4.0 GB</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-lbl">RAM Usage</div>
+          <div id="statRamUsage" class="stat-val">0 MB</div>
+        </div>
+      </div>
+
+      <!-- Quick Server Details Card -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">⚙️</span> Current Server Settings
+        </div>
+        <div class="form-group">
+          <span class="form-label">Server Name</span>
+          <input type="text" id="infoServerName" class="input-text" value="SMP" readonly />
+        </div>
+        <div class="form-group">
+          <span class="form-label">Target Storage Directory</span>
+          <input type="text" id="infoServerFolder" class="input-text" value="/sdcard/Download/MinecraftServers/SMP" readonly />
+        </div>
+        <div class="grid-2">
+          <div>
+            <span class="form-label">Java Port</span>
+            <input type="text" class="input-text" value="25565 (TCP)" readonly />
+          </div>
+          <div>
+            <span class="form-label">Bedrock Port</span>
+            <input type="text" class="input-text" value="19132 (UDP)" readonly />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 2: PREINSTALLED REQUIREMENTS & ADDONS -->
+    <section id="tab-preinstalled" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">⚡</span> Preinstalled Core Crossplay Requirements
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          The following core plugins and version compatibility layers are <strong>pre-installed by default</strong> in your 'SMP' server folder.
+        </p>
+
+        <div id="preinstalledList"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: CUSTOM PLUGINS & MODS MANAGER -->
+    <section id="tab-plugins" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <span><span class="icon">🧩</span> Custom Plugins & Mods</span>
+          <button id="btnUploadPlugin" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">
+            <span>➕</span> Add Custom Jar
+          </button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          Toggle or add custom plugins, mods, and addons to customize your server.
+        </p>
+
+        <div id="customPluginsList"></div>
+      </div>
+    </section>
+
+    <!-- TAB 4: PUBLIC ACCESS & CREDENTIALS -->
+    <section id="tab-public" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🌐</span> Public Connection Credentials
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+          Share these details with your friends so both Java and Bedrock players can join your server!
+        </p>
+
+        <div class="form-group">
+          <span class="form-label">★ JAVA EDITION (PC / Mac / Linux)</span>
+          <input type="text" id="credJava" class="input-text" value="144.24.156.140:25565" readonly />
+        </div>
+
+        <div class="form-group">
+          <span class="form-label">★ BEDROCK EDITION (Android / iOS / Windows / Consoles)</span>
+          <div class="grid-2">
+            <input type="text" id="credBedrockIp" class="input-text" value="144.24.156.140" readonly />
+            <input type="text" class="input-text" value="Port: 19132" readonly />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <span class="form-label">🔗 Playit.gg Zero-Port Tunnel Domain</span>
+          <input type="text" id="credTunnel" class="input-text" value="smp-crossplay.joinmc.link" readonly />
+        </div>
+
+        <button id="btnCopyInvite" class="btn btn-primary">
+          <span>📋</span> Copy Shareable Invite Message
+        </button>
+      </div>
+    </section>
+
+    <!-- TAB 5: TERMINAL & LOGS -->
+    <section id="tab-terminal" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <span><span class="icon">💻</span> Live Server Terminal & Logs</span>
+          <button id="btnClearLogs" class="btn btn-secondary" style="width: auto; padding: 4px 10px; font-size: 0.75rem;">
+            Clear Logs
+          </button>
+        </div>
+
+        <!-- Terminal Console Window -->
+        <div id="terminalBox" class="terminal-box"></div>
+
+        <!-- Command Input Form -->
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="inputCmd" class="input-text" placeholder="Type command (e.g. say Hello, op player, list)..." />
+          <button id="btnSendCmd" class="btn btn-primary" style="width: auto; padding: 0 16px;">
+            Send
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- TAB 6: SETTINGS & STORAGE SELECTOR -->
+    <section id="tab-settings" class="tab-page" style="display: none;">
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">⚙️</span> Server Storage & Config
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settingServerName">Default Server Name</label>
+          <input type="text" id="settingServerName" class="input-text" value="SMP" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settingFolder">User Selected Storage Folder</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="settingFolder" class="input-text" value="/sdcard/Download/MinecraftServers/SMP" />
+            <button id="btnBrowseFolder" class="btn btn-secondary" style="width: auto; padding: 0 14px;">Browse</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settingRam">Server RAM Allocation: <span id="lblRamVal" style="color: var(--primary);">4 GB</span></label>
+          <input type="range" id="settingRam" min="1" max="12" step="1" value="4" style="width: 100%; accent-color: var(--primary);" />
+        </div>
+
+        <button id="btnSaveConfig" class="btn btn-primary">
+          <span>💾</span> Save Settings
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button class="nav-tab active" data-tab="tab-dashboard">
+      <span class="icon">🎮</span>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-tab" data-tab="tab-preinstalled">
+      <span class="icon">⚡</span>
+      <span>Crossplay</span>
+    </button>
+    <button class="nav-tab" data-tab="tab-plugins">
+      <span class="icon">🧩</span>
+      <span>Plugins</span>
+    </button>
+    <button class="nav-tab" data-tab="tab-public">
+      <span class="icon">🌐</span>
+      <span>Public</span>
+    </button>
+    <button class="nav-tab" data-tab="tab-terminal">
+      <span class="icon">💻</span>
+      <span>Console</span>
+    </button>
+  </nav>
+
+</body>
+</html>
