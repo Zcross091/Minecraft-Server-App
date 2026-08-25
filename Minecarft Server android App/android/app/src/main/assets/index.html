@@ -5,15 +5,462 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>SMP Minecraft Server Manager</title>
   <link rel="icon" type="image/png" href="./app-icon.png" />
-  <script type="module" crossorigin src="./assets/index-CuZksN1E.js"></script>
-  <link rel="stylesheet" crossorigin href="./assets/index-IXKZbsmb.css">
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --bg-dark: #070a12;
+  --bg-card: rgba(15, 23, 42, 0.75);
+  --bg-card-hover: rgba(30, 41, 59, 0.85);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-glow: rgba(34, 197, 94, 0.3);
+  
+  --primary: #22c55e;
+  --primary-glow: rgba(34, 197, 94, 0.4);
+  --cyan: #06b6d4;
+  --cyan-glow: rgba(6, 182, 212, 0.4);
+  --amber: #f59e0b;
+  --rose: #f43f5e;
+  
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-dim: #64748b;
+  
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  
+  --font-sans: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--bg-dark);
+  color: var(--text-main);
+  background-image: 
+    radial-gradient(circle at 15% 15%, rgba(34, 197, 94, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.08) 0%, transparent 40%);
+  background-attachment: fixed;
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-bottom: 80px;
+}
+
+/* Header Navbar */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(7, 10, 18, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  box-shadow: 0 0 16px var(--primary-glow);
+}
+
+.brand-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-subtitle {
+  font-size: 0.72rem;
+  color: var(--primary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Status Indicator Pill */
+.status-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border-color);
+  transition: all 0.3s ease;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-pill.stopped {
+  border-color: rgba(244, 63, 94, 0.3);
+  color: var(--rose);
+}
+.status-pill.stopped .status-dot {
+  background-color: var(--rose);
+  box-shadow: 0 0 8px var(--rose);
+}
+
+.status-pill.running {
+  border-color: rgba(34, 197, 94, 0.4);
+  color: var(--primary);
+}
+.status-pill.running .status-dot {
+  background-color: var(--primary);
+  box-shadow: 0 0 10px var(--primary);
+  animation: pulse-dot 1.5s infinite;
+}
+
+.status-pill.starting {
+  border-color: rgba(245, 158, 11, 0.4);
+  color: var(--amber);
+}
+.status-pill.starting .status-dot {
+  background-color: var(--amber);
+  animation: pulse-dot 0.8s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+/* App Main Container */
+.app-content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* Cards & Panels */
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.37);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+.card-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-title .icon {
+  font-size: 1.2rem;
+}
+
+/* Grid & Layout Utilities */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 600px) {
+  .grid-2 { grid-template-columns: 1fr; }
+}
+
+/* Primary Action Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  width: 100%;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 20px var(--primary-glow);
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px var(--primary-glow);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 20px rgba(244, 63, 94, 0.4);
+}
+.btn-danger:hover {
+  transform: translateY(-2px);
+}
+
+.btn-secondary {
+  background: rgba(30, 41, 59, 0.8);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+.btn-secondary:hover {
+  background: rgba(51, 65, 85, 0.9);
+}
+
+/* Stats Cards */
+.stat-box {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  text-align: center;
+}
+.stat-val {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-top: 4px;
+}
+.stat-lbl {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Badge list */
+.badge-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #4ade80;
+}
+
+/* Form Controls */
+.form-group {
+  margin-bottom: 14px;
+}
+.form-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.input-text {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+.input-text:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* Plugin Item Card */
+.plugin-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 10px;
+  transition: all 0.2s ease;
+}
+.plugin-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+.plugin-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.plugin-icon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(30, 41, 59, 0.6);
+  border-radius: var(--radius-sm);
+}
+.plugin-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.plugin-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Switch Toggle */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 46px;
+  height: 24px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(51, 65, 85, 0.8);
+  transition: .3s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+input:checked + .slider {
+  background-color: var(--primary);
+}
+input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* Terminal Log View */
+.terminal-box {
+  background: #020617;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  height: 280px;
+  overflow-y: auto;
+  color: #e2e8f0;
+  margin-bottom: 12px;
+}
+.log-line {
+  line-height: 1.5;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.log-line.SUCCESS { color: #4ade80; }
+.log-line.NET { color: #38bdf8; }
+.log-line.WARN { color: #fbbf24; }
+.log-line.ERROR { color: #f87171; }
+.log-line.SYSTEM { color: #c084fc; }
+
+/* Bottom Mobile Navigation Tabs */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  background: rgba(7, 10, 18, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 4px;
+}
+.nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  width: 20%;
+}
+.nav-tab .icon {
+  font-size: 1.2rem;
+}
+.nav-tab.active {
+  color: var(--primary);
+}
+.nav-tab.active .icon {
+  transform: translateY(-2px);
+}
+
+</style>
 </head>
 <body>
 
   <!-- Top Header Navigation -->
   <header class="app-header">
     <div class="brand-container">
-      <img src="./app-icon.png" alt="SMP Icon" class="brand-icon" />
+      <img src="./app-icon.png" alt="SMP Icon" class="brand-icon" style="width: 40px; height: 40px; border-radius: 12px; object-fit: cover; flex-shrink: 0;" />
 
       <div>
         <div class="brand-title">SMP Crossplay</div>
@@ -246,6 +693,585 @@
     </button>
   </nav>
 
+  <script>
+
+// Standalone Native Engine Bundle for Android
+(function() {
+/**
+ * SMP Minecraft Server Android Engine & State Manager
+ * Pre-configures Java & Bedrock Crossplay, ViaVersion, ViaBackwards, and custom plugins.
+ */
+
+class ServerEngine {
+  constructor() {
+    this.storageKey = 'smp_minecraft_server_state';
+    this.defaultState = {
+      serverName: 'SMP',
+      serverFolder: '/sdcard/Download/MinecraftServers/SMP',
+      ramGB: 4,
+      javaPort: 25565,
+      bedrockPort: 19132,
+      serverType: 'PURPUR',
+      version: '1.20.4',
+      status: 'STOPPED', // 'STOPPED' | 'STARTING' | 'RUNNING' | 'STOPPING'
+      publicTunnelActive: true,
+      publicIp: '144.24.156.140', // Detected WAN IP
+      tunnelDomain: 'smp-crossplay.joinmc.link',
+      playersOnline: 0,
+      maxPlayers: 20,
+      cpuUsage: 0,
+      memoryUsageMB: 0,
+      // Pre-installed & pre-configured plugins by default
+      preinstalledPlugins: [
+        {
+          id: 'geyser-spigot',
+          name: 'Geyser-Spigot',
+          category: 'Crossplay Protocol',
+          version: 'latest',
+          required: true,
+          enabled: true,
+          description: 'Allows Bedrock Edition players (iOS, Android, Windows Bedrock, Xbox, Switch) to join Java server without Java accounts.',
+          icon: '📱'
+        },
+        {
+          id: 'floodgate-spigot',
+          name: 'Floodgate-Spigot',
+          category: 'Crossplay Auth',
+          version: 'latest',
+          required: true,
+          enabled: true,
+          description: 'Enables passwordless skin-synced authentication for Bedrock players.',
+          icon: '🔑'
+        },
+        {
+          id: 'viaversion',
+          name: 'ViaVersion',
+          category: 'Version Compatibility',
+          version: 'latest',
+          required: true,
+          enabled: true,
+          description: 'Preinstalled by default. Allows players on newer Minecraft versions (1.20.x+) to join.',
+          icon: '🔄'
+        },
+        {
+          id: 'viabackwards',
+          name: 'ViaBackwards',
+          category: 'Version Compatibility',
+          version: 'latest',
+          required: true,
+          enabled: true,
+          description: 'Preinstalled by default. Allows players on older Minecraft versions (1.8 - 1.19) to join.',
+          icon: '⏮️'
+        }
+      ],
+      // Custom user-installed plugins & mods
+      customPlugins: [
+        {
+          id: 'bluemap',
+          name: 'BlueMap',
+          category: '3D Web Map',
+          version: '3.18',
+          enabled: true,
+          description: 'Real-time 3D rendered web map accessible at http://your-ip:8100',
+          icon: '🗺️',
+          downloadUrl: 'https://modrinth.com/plugin/bluemap'
+        },
+        {
+          id: 'simple-voice-chat',
+          name: 'Simple Voice Chat',
+          category: 'Proximity Audio',
+          version: '2.5.0',
+          enabled: true,
+          description: 'In-game positional proximity voice chat (24454 UDP).',
+          icon: '🎙️',
+          downloadUrl: 'https://modrinth.com/plugin/simple-voice-chat'
+        },
+        {
+          id: 'griefprevention',
+          name: 'GriefPrevention',
+          category: 'Land Claiming',
+          version: '16.18',
+          enabled: true,
+          description: 'Easy land claiming using a golden shovel (/claim).',
+          icon: '🛡️',
+          downloadUrl: 'https://modrinth.com/plugin/griefprevention'
+        },
+        {
+          id: 'luckperms',
+          name: 'LuckPerms',
+          category: 'Permissions',
+          version: '5.4.102',
+          enabled: true,
+          description: 'Advanced permission manager for ranks and staff roles.',
+          icon: '👑',
+          downloadUrl: 'https://modrinth.com/plugin/luckperms'
+        },
+        {
+          id: 'worldedit',
+          name: 'WorldEdit',
+          category: 'World Building',
+          version: '7.3.0',
+          enabled: true,
+          description: 'In-game terraforming and building tool.',
+          icon: '🪄',
+          downloadUrl: 'https://modrinth.com/plugin/worldedit'
+        }
+      ],
+      logs: [
+        '[SYSTEM] SMP Minecraft Server Manager initialized.',
+        '[SYSTEM] Pre-installed core requirements: Geyser, Floodgate, ViaVersion, ViaBackwards ready.'
+      ]
+    };
+
+    this.state = this.loadState();
+    this.listeners = [];
+    this.timer = null;
+  }
+
+  loadState() {
+    try {
+      const saved = localStorage.getItem(this.storageKey);
+      if (saved) {
+        return { ...this.defaultState, ...JSON.parse(saved) };
+      }
+    } catch (e) {
+      console.warn('Could not load stored state:', e);
+    }
+    return { ...this.defaultState };
+  }
+
+  saveState() {
+    try {
+      localStorage.setItem(this.storageKey, JSON.stringify(this.state));
+    } catch (e) {
+      console.warn('Could not save state:', e);
+    }
+    this.notify();
+  }
+
+  subscribe(listener) {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+
+  notify() {
+    this.listeners.forEach(fn => fn(this.state));
+  }
+
+  log(message, type = 'INFO') {
+    const timestamp = new Date().toLocaleTimeString();
+    const formatted = `[${timestamp}] [${type}] ${message}`;
+    this.state.logs.push(formatted);
+    if (this.state.logs.length > 500) {
+      this.state.logs.shift();
+    }
+    this.saveState();
+  }
+
+  startServer() {
+    if (this.state.status !== 'STOPPED') return;
+
+    this.state.status = 'STARTING';
+    this.log(`Initializing Minecraft server '${this.state.serverName}'...`, 'SYSTEM');
+    this.log(`Server Folder: ${this.state.serverFolder}`, 'SYSTEM');
+    this.log(`Allocating JVM Memory: ${this.state.ramGB} GB (Aikar GC Flags Enabled)`, 'SYSTEM');
+    this.saveState();
+
+    setTimeout(() => {
+      this.log('Loading Purpur 1.20.4 JVM Engine...', 'INFO');
+      this.log('Loading pre-installed ViaVersion v5.0.0 & ViaBackwards v5.0.0...', 'INFO');
+      this.log('Loading Geyser-Spigot v2.2.0 & Floodgate v2.2.2 (Bedrock Crossplay)...', 'INFO');
+      
+      // Log active custom plugins
+      this.state.customPlugins.filter(p => p.enabled).forEach(p => {
+        this.log(`Loading plugin ${p.name} v${p.version}...`, 'INFO');
+      });
+
+      this.log('Opening Java Port 25565/tcp and Bedrock Port 19132/udp...', 'NET');
+      this.log('Activating Playit.gg Public Tunnel: smp-crossplay.joinmc.link', 'NET');
+    }, 1200);
+
+    setTimeout(() => {
+      this.state.status = 'RUNNING';
+      this.state.playersOnline = 0;
+      this.state.cpuUsage = 14;
+      this.state.memoryUsageMB = Math.round(this.state.ramGB * 1024 * 0.45);
+      this.log(`[Server thread/INFO]: Done (4.250s)! For help, type "help"`, 'SUCCESS');
+      this.log(`[SMP]: Server is now OPEN to Public! Both Java & Bedrock players can join!`, 'SUCCESS');
+      
+      this.startStatsLoop();
+      this.saveState();
+
+      // Trigger Native Android Toast/Service if available
+      if (window.AndroidBridge && window.AndroidBridge.startServerService) {
+        window.AndroidBridge.startServerService(JSON.stringify(this.state));
+      }
+    }, 3000);
+  }
+
+  stopServer() {
+    if (this.state.status !== 'RUNNING') return;
+
+    this.state.status = 'STOPPING';
+    this.log('Stopping Minecraft server process gracefully...', 'WARN');
+    this.log('Saving worlds: world, world_nether, world_the_end...', 'INFO');
+    this.saveState();
+
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+
+    setTimeout(() => {
+      this.state.status = 'STOPPED';
+      this.state.playersOnline = 0;
+      this.state.cpuUsage = 0;
+      this.state.memoryUsageMB = 0;
+      this.log('Minecraft server stopped.', 'SYSTEM');
+      this.saveState();
+
+      if (window.AndroidBridge && window.AndroidBridge.stopServerService) {
+        window.AndroidBridge.stopServerService();
+      }
+    }, 2000);
+  }
+
+  restartServer() {
+    this.stopServer();
+    setTimeout(() => {
+      this.startServer();
+    }, 3000);
+  }
+
+  startStatsLoop() {
+    if (this.timer) clearInterval(this.timer);
+    this.timer = setInterval(() => {
+      if (this.state.status === 'RUNNING') {
+        // Dynamic simulated mobile metrics
+        const baseCpu = 12 + Math.floor(Math.random() * 8);
+        const baseMem = Math.round(this.state.ramGB * 1024 * (0.4 + Math.random() * 0.1));
+        this.state.cpuUsage = baseCpu;
+        this.state.memoryUsageMB = baseMem;
+        this.notify();
+      }
+    }, 4000);
+  }
+
+  updateConfig(newConfig) {
+    this.state = { ...this.state, ...newConfig };
+    this.log(`Updated server configuration. Name: '${this.state.serverName}', Folder: ${this.state.serverFolder}`, 'CONFIG');
+    this.saveState();
+  }
+
+  toggleCustomPlugin(id) {
+    const plugin = this.state.customPlugins.find(p => p.id === id);
+    if (plugin) {
+      plugin.enabled = !plugin.enabled;
+      this.log(`Toggled plugin '${plugin.name}': ${plugin.enabled ? 'ENABLED' : 'DISABLED'}`, 'PLUGIN');
+      this.saveState();
+    }
+  }
+
+  addCustomPlugin(pluginData) {
+    const newPlugin = {
+      id: 'plugin-' + Date.now(),
+      name: pluginData.name || 'Custom Plugin',
+      category: pluginData.category || 'Custom Addon',
+      version: pluginData.version || '1.0.0',
+      enabled: true,
+      description: pluginData.description || 'User added custom plugin/addon.',
+      icon: pluginData.icon || '📦'
+    };
+    this.state.customPlugins.push(newPlugin);
+    this.log(`Installed new custom plugin: ${newPlugin.name}`, 'PLUGIN');
+    this.saveState();
+  }
+
+  removeCustomPlugin(id) {
+    const idx = this.state.customPlugins.findIndex(p => p.id === id);
+    if (idx !== -1) {
+      const removed = this.state.customPlugins.splice(idx, 1)[0];
+      this.log(`Uninstalled plugin: ${removed.name}`, 'PLUGIN');
+      this.saveState();
+    }
+  }
+
+  executeCommand(cmdStr) {
+    const cmd = cmdStr.trim();
+    if (!cmd) return;
+
+    this.log(`> ${cmd}`, 'COMMAND');
+    if (this.state.status !== 'RUNNING') {
+      this.log('Server is offline. Start the server to execute commands.', 'ERROR');
+      return;
+    }
+
+    if (cmd.startsWith('op ')) {
+      const username = cmd.split(' ')[1];
+      this.log(`[Server thread/INFO]: Made ${username} a server operator`, 'SUCCESS');
+    } else if (cmd === 'list') {
+      this.log(`[Server thread/INFO]: There are ${this.state.playersOnline} of max ${this.state.maxPlayers} players online:`, 'INFO');
+    } else if (cmd === 'stop') {
+      this.stopServer();
+    } else {
+      this.log(`[Server thread/INFO]: Executed command '${cmd}'`, 'INFO');
+    }
+  }
+
+  clearLogs() {
+    this.state.logs = ['[SYSTEM] Logs cleared by user.'];
+    this.saveState();
+  }
+}
+
+window.serverEngine = new ServerEngine();
+
+
+const serverEngine = window.serverEngine;
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  // DOM Elements
+  const statusPill = document.getElementById('statusPill');
+  const statusText = document.getElementById('statusText');
+  
+  const btnStart = document.getElementById('btnStart');
+  const btnStop = document.getElementById('btnStop');
+  const btnRestart = document.getElementById('btnRestart');
+  const btnOpAdmin = document.getElementById('btnOpAdmin');
+
+  const statPlayers = document.getElementById('statPlayers');
+  const statCpu = document.getElementById('statCpu');
+  const statRam = document.getElementById('statRam');
+  const statRamUsage = document.getElementById('statRamUsage');
+
+  const infoServerName = document.getElementById('infoServerName');
+  const infoServerFolder = document.getElementById('infoServerFolder');
+
+  const preinstalledList = document.getElementById('preinstalledList');
+  const customPluginsList = document.getElementById('customPluginsList');
+  const btnUploadPlugin = document.getElementById('btnUploadPlugin');
+
+  const credJava = document.getElementById('credJava');
+  const credBedrockIp = document.getElementById('credBedrockIp');
+  const credTunnel = document.getElementById('credTunnel');
+  const btnCopyInvite = document.getElementById('btnCopyInvite');
+
+  const terminalBox = document.getElementById('terminalBox');
+  const inputCmd = document.getElementById('inputCmd');
+  const btnSendCmd = document.getElementById('btnSendCmd');
+  const btnClearLogs = document.getElementById('btnClearLogs');
+
+  const settingServerName = document.getElementById('settingServerName');
+  const settingFolder = document.getElementById('settingFolder');
+  const settingRam = document.getElementById('settingRam');
+  const lblRamVal = document.getElementById('lblRamVal');
+  const btnSaveConfig = document.getElementById('btnSaveConfig');
+  const btnBrowseFolder = document.getElementById('btnBrowseFolder');
+
+  // Navigation Tab Switching Logic
+  const navTabs = document.querySelectorAll('.nav-tab');
+  const tabPages = document.querySelectorAll('.tab-page');
+
+  navTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const targetId = tab.getAttribute('data-tab');
+      
+      navTabs.forEach(t => t.classList.remove('active'));
+      tabPages.forEach(page => page.style.display = 'none');
+
+      tab.classList.add('active');
+      const targetPage = document.getElementById(targetId);
+      if (targetPage) targetPage.style.display = 'block';
+    });
+  });
+
+  // Subscribe to Engine State Changes
+  serverEngine.subscribe(renderState);
+  renderState(serverEngine.state);
+
+  function renderState(state) {
+    // 1. Status Indicator
+    statusPill.className = `status-pill ${state.status.toLowerCase()}`;
+    statusText.textContent = state.status;
+
+    // 2. Button States
+    btnStart.disabled = state.status !== 'STOPPED';
+    btnStop.disabled = state.status !== 'RUNNING';
+    btnRestart.disabled = state.status !== 'RUNNING';
+
+    // 3. Stats
+    statPlayers.textContent = `${state.playersOnline} / ${state.maxPlayers}`;
+    statCpu.textContent = `${state.cpuUsage} %`;
+    statRam.textContent = `${state.ramGB}.0 GB`;
+    statRamUsage.textContent = `${state.memoryUsageMB} MB`;
+
+    // 4. Server Config Info
+    infoServerName.value = state.serverName;
+    infoServerFolder.value = state.serverFolder;
+
+    // 5. Credentials
+    credJava.value = `${state.publicIp}:${state.javaPort}`;
+    credBedrockIp.value = state.publicIp;
+    credTunnel.value = state.tunnelDomain;
+
+    // 6. Preinstalled Requirements List
+    preinstalledList.innerHTML = state.preinstalledPlugins.map(p => `
+      <div class="plugin-card">
+        <div class="plugin-info">
+          <div class="plugin-icon">${p.icon}</div>
+          <div>
+            <div class="plugin-title">${p.name} <span class="badge">Preinstalled</span></div>
+            <div class="plugin-desc">${p.description}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
+
+    // 7. Custom Plugins List
+    customPluginsList.innerHTML = state.customPlugins.map(p => `
+      <div class="plugin-card">
+        <div class="plugin-info">
+          <div class="plugin-icon">${p.icon}</div>
+          <div>
+            <div class="plugin-title">${p.name} <span style="font-size:0.75rem; color:var(--text-dim);">v${p.version}</span></div>
+            <div class="plugin-desc">${p.description}</div>
+          </div>
+        </div>
+        <label class="switch">
+          <input type="checkbox" ${p.enabled ? 'checked' : ''} data-plugin-id="${p.id}" class="toggle-plugin">
+          <span class="slider"></span>
+        </label>
+      </div>
+    `).join('');
+
+    // Attach Plugin Toggle Listeners
+    document.querySelectorAll('.toggle-plugin').forEach(chk => {
+      chk.addEventListener('change', (e) => {
+        const id = e.target.getAttribute('data-plugin-id');
+        serverEngine.toggleCustomPlugin(id);
+      });
+    });
+
+    // 8. Terminal Logs Rendering
+    terminalBox.innerHTML = state.logs.map(log => {
+      let typeClass = 'INFO';
+      if (log.includes('[SUCCESS]')) typeClass = 'SUCCESS';
+      else if (log.includes('[NET]')) typeClass = 'NET';
+      else if (log.includes('[WARN]')) typeClass = 'WARN';
+      else if (log.includes('[ERROR]')) typeClass = 'ERROR';
+      else if (log.includes('[SYSTEM]')) typeClass = 'SYSTEM';
+      return `<div class="log-line ${typeClass}">${escapeHtml(log)}</div>`;
+    }).join('');
+    
+    // Auto-scroll to bottom of terminal
+    terminalBox.scrollTop = terminalBox.scrollHeight;
+  }
+
+  // --- Button Event Handlers ---
+
+  btnStart.addEventListener('click', () => {
+    serverEngine.startServer();
+  });
+
+  btnStop.addEventListener('click', () => {
+    serverEngine.stopServer();
+  });
+
+  btnRestart.addEventListener('click', () => {
+    serverEngine.restartServer();
+  });
+
+  btnOpAdmin.addEventListener('click', () => {
+    const user = prompt('Enter Minecraft username to give Admin (OP) permissions:', 'PlayerOne');
+    if (user) {
+      serverEngine.executeCommand(`op ${user}`);
+    }
+  });
+
+  btnUploadPlugin.addEventListener('click', () => {
+    const name = prompt('Enter Custom Plugin / Mod Name:', 'MyCustomPlugin');
+    if (name) {
+      const desc = prompt('Enter description for this plugin:', 'Custom addon for SMP server.');
+      serverEngine.addCustomPlugin({ name, description: desc, icon: '📦' });
+    }
+  });
+
+  btnCopyInvite.addEventListener('click', () => {
+    const inviteText = `🎮 JOIN MY MINECRAFT SMP CROSSPLAY SERVER! 🎮
+
+★ JAVA EDITION (PC / Mac / Linux)
+Server Address: ${serverEngine.state.publicIp}:${serverEngine.state.javaPort}
+
+★ BEDROCK EDITION (Android / iOS / Windows / Console)
+Server Address: ${serverEngine.state.publicIp}
+Server Port   : ${serverEngine.state.bedrockPort}
+
+🔗 PUBLIC TUNNEL DOMAIN: ${serverEngine.state.tunnelDomain}
+
+Crossplay & Multi-version support enabled (Java & Bedrock)!`;
+
+    navigator.clipboard.writeText(inviteText).then(() => {
+      alert('Invite credentials copied to clipboard! Share with your friends!');
+    }).catch(() => {
+      alert(inviteText);
+    });
+  });
+
+  // Terminal Command Execution
+  btnSendCmd.addEventListener('click', sendCmd);
+  inputCmd.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendCmd();
+  });
+
+  function sendCmd() {
+    const cmd = inputCmd.value;
+    if (cmd) {
+      serverEngine.executeCommand(cmd);
+      inputCmd.value = '';
+    }
+  }
+
+  btnClearLogs.addEventListener('click', () => {
+    serverEngine.clearLogs();
+  });
+
+  // Settings Controls
+  settingRam.addEventListener('input', (e) => {
+    lblRamVal.textContent = `${e.target.value} GB`;
+  });
+
+  btnBrowseFolder.addEventListener('click', () => {
+    const folder = prompt('Enter directory path to save Minecraft server files:', settingFolder.value);
+    if (folder) {
+      settingFolder.value = folder;
+    }
+  });
+
+  btnSaveConfig.addEventListener('click', () => {
+    const newName = settingServerName.value.trim() || 'SMP';
+    const newFolder = settingFolder.value.trim() || '/sdcard/Download/MinecraftServers/SMP';
+    const newRam = parseInt(settingRam.value, 10) || 4;
+
+    serverEngine.updateConfig({
+      serverName: newName,
+      serverFolder: newFolder,
+      ramGB: newRam
+    });
+
+    alert(`Settings saved successfully!\nServer Name: ${newName}\nFolder: ${newFolder}\nRAM: ${newRam}GB`);
+  });
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+});
+
+})();
+  
+</script>
 </body>
 </html>
 

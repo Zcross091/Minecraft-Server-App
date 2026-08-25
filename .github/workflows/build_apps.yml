@@ -24,13 +24,10 @@ jobs:
         with:
           node-version: 22
 
-      - name: Build Android Web Bundle
+      - name: Build Standalone Web Assets
         run: |
-          cd "Minecarft Server android App"
-          npm ci || npm install
-          npm run build
-          mkdir -p android/app/src/main/assets
-          cp -r dist/* android/app/src/main/assets/
+          node bundle_standalone.js
+
 
       - name: Setup Java JDK 17
         uses: actions/setup-java@v4
@@ -72,13 +69,10 @@ jobs:
         with:
           node-version: 22
 
-      - name: Build iOS Web Bundle
+      - name: Build Standalone Web Assets
         run: |
-          cd "Minecraft Server ios App"
-          npm ci || npm install
-          npm run build
-          mkdir -p ios/App/App/public
-          cp -r dist/* ios/App/App/public/
+          node bundle_standalone.js
+
 
       - name: Package iOS Project Zip
         run: |
