@@ -89,10 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
     preinstalledList.innerHTML = state.preinstalledPlugins.map(p => `
       <div class="plugin-card">
         <div class="plugin-info">
-          <div class="plugin-icon">${p.icon}</div>
+          <div class="plugin-icon">${escapeHtml(p.icon)}</div>
           <div>
-            <div class="plugin-title">${p.name} <span class="badge">Preinstalled</span></div>
-            <div class="plugin-desc">${p.description}</div>
+            <div class="plugin-title">${escapeHtml(p.name)} <span class="badge">Preinstalled</span></div>
+            <div class="plugin-desc">${escapeHtml(p.description)}</div>
           </div>
         </div>
       </div>
@@ -102,14 +102,14 @@ document.addEventListener('DOMContentLoaded', () => {
     customPluginsList.innerHTML = state.customPlugins.map(p => `
       <div class="plugin-card">
         <div class="plugin-info">
-          <div class="plugin-icon">${p.icon}</div>
+          <div class="plugin-icon">${escapeHtml(p.icon)}</div>
           <div>
-            <div class="plugin-title">${p.name} <span style="font-size:0.75rem; color:var(--text-dim);">v${p.version}</span></div>
-            <div class="plugin-desc">${p.description}</div>
+            <div class="plugin-title">${escapeHtml(p.name)} <span style="font-size:0.75rem; color:var(--text-dim);">v${escapeHtml(p.version)}</span></div>
+            <div class="plugin-desc">${escapeHtml(p.description)}</div>
           </div>
         </div>
         <label class="switch">
-          <input type="checkbox" ${p.enabled ? 'checked' : ''} data-plugin-id="${p.id}" class="toggle-plugin">
+          <input type="checkbox" ${p.enabled ? 'checked' : ''} data-plugin-id="${escapeHtml(p.id)}" class="toggle-plugin">
           <span class="slider"></span>
         </label>
       </div>

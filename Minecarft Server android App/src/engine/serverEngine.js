@@ -261,7 +261,15 @@ export class ServerEngine {
   }
 
   updateConfig(newConfig) {
-    this.state = { ...this.state, ...newConfig };
+    // Only allow safe, whitelisted config fields to be updated
+    const allowedFields = ['serverName', 'serverFolder', 'ramGB', 'maxPlayers'];
+    const safeConfig = {};
+    for (const key of allowedFields) {
+      if (newConfig.hasOwnProperty(key)) {
+        safeConfig[key] = newConfig[key];
+      }
+    }
+    this.state = { ...this.state, ...safeConfig };
     this.log(`Updated server configuration. Name: '${this.state.serverName}', Folder: ${this.state.serverFolder}`, 'CONFIG');
     this.saveState();
   }
@@ -276,14 +284,16 @@ export class ServerEngine {
   }
 
   addCustomPlugin(pluginData) {
+    // Sanitize user input by stripping HTML tags
+    const stripHtml = (str) => String(str || '').replace(/<[^>]*>/g, '');
     const newPlugin = {
       id: 'plugin-' + Date.now(),
-      name: pluginData.name || 'Custom Plugin',
-      category: pluginData.category || 'Custom Addon',
-      version: pluginData.version || '1.0.0',
+      name: stripHtml(pluginData.name) || 'Custom Plugin',
+      category: stripHtml(pluginData.category) || 'Custom Addon',
+      version: stripHtml(pluginData.version) || '1.0.0',
       enabled: true,
-      description: pluginData.description || 'User added custom plugin/addon.',
-      icon: pluginData.icon || '📦'
+      description: stripHtml(pluginData.description) || 'User added custom plugin/addon.',
+      icon: stripHtml(pluginData.icon) || '📦'
     };
     this.state.customPlugins.push(newPlugin);
     this.log(`Installed new custom plugin: ${newPlugin.name}`, 'PLUGIN');
