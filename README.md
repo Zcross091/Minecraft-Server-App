@@ -54,11 +54,11 @@ Every server created by the app comes **pre-configured and pre-installed** with 
 
 ### 🤖 Android Setup (Download APK)
 
-#### Option 1: Download Pre-compiled APK from GitHub Actions
-1. Go to the **[GitHub Actions Tab](https://github.com/Zcross091/Minecraft-Server-App/actions)**.
-2. Click the latest successful workflow run.
-3. Scroll down to **Artifacts** and download **`SMP-Minecraft-Server-Android-APK`**.
-4. Install the `.apk` file directly on your Android phone!
+#### Option 1: Download Latest Release APK (Recommended)
+1. Go to **[GitHub Releases Page](https://github.com/Zcross091/Minecraft-Server-App/releases)**.
+2. Download **`SMP-Minecraft-Server-Android.apk`** from the Assets section.
+3. Install the `.apk` file directly on your Android phone!
+
 
 #### Option 2: Build from Source
 ```bash

@@ -1,11 +1,15 @@
-name: Build Android & iOS Mobile Apps
+name: Build & Release Mobile Apps
 
 on:
   push:
     branches: [ "main", "master" ]
+    tags: [ "v*" ]
   pull_request:
     branches: [ "main", "master" ]
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build-android:
@@ -44,12 +48,16 @@ jobs:
           cd "Minecarft Server android App/android"
           gradle assembleDebug --no-daemon
 
+      - name: Prepare Release APK Package
+        run: |
+          mkdir -p release_assets
+          cp "Minecarft Server android App/android/app/build/outputs/apk/debug/app-debug.apk" "release_assets/SMP-Minecraft-Server-Android.apk"
 
       - name: Upload Android APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SMP-Minecraft-Server-Android-APK
-          path: Minecarft Server android App/android/app/build/outputs/apk/debug/*.apk
+          path: release_assets/SMP-Minecraft-Server-Android.apk
           retention-days: 30
 
   build-ios:
@@ -72,11 +80,69 @@ jobs:
           mkdir -p ios/App/App/public
           cp -r dist/* ios/App/App/public/
 
+      - name: Package iOS Project Zip
+        run: |
+          mkdir -p release_assets
+          zip -r release_assets/SMP-Minecraft-Server-iOS-Project.zip "Minecraft Server ios App"
+
       - name: Upload iOS Xcode Project Artifact
         uses: actions/upload-artifact@v4
         with:
           name: SMP-Minecraft-Server-iOS-Project
-          path: |
-            Minecraft Server ios App/dist/
-            Minecraft Server ios App/ios/
+          path: release_assets/SMP-Minecraft-Server-iOS-Project.zip
           retention-days: 30
+
+  publish-release:
+    name: 🚀 Publish GitHub Release
+    needs: [build-android, build-ios]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || startsWith(github.ref, 'refs/tags/'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Android APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SMP-Minecraft-Server-Android-APK
+          path: release_assets
+
+      - name: Download iOS Project Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: SMP-Minecraft-Server-iOS-Project
+          path: release_assets
+
+      - name: Generate Release Tag Name
+        id: tag_name
+        run: |
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            TAG="${GITHUB_REF#refs/tags/}"
+          else
+            TAG="v1.0.${{ github.run_number }}"
+          fi
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag_name.outputs.TAG }}
+          name: "SMP Minecraft Server Mobile App ${{ steps.tag_name.outputs.TAG }}"
+          body: |
+            ## 🎮 SMP Minecraft Server Mobile App Release (${{ steps.tag_name.outputs.TAG }})
+
+            Start and host your own **Minecraft Java & Bedrock Crossplay Server** directly from your mobile phone with **zero terminal commands**!
+
+            ### 📦 Included Downloads:
+            - **`SMP-Minecraft-Server-Android.apk`**: Ready-to-install Android APK binary for mobile phones.
+            - **`SMP-Minecraft-Server-iOS-Project.zip`**: Complete iOS Xcode & Web bundle for iPhones and iPads.
+
+            ### ✨ Highlights:
+            - 📱 **Zero-Terminal UI**: Start, Stop, and Restart your Minecraft server on demand.
+            - 📁 **User-Selected Folder**: Choose any storage folder for server creation.
+            - ⚡ **Pre-installed Requirements**: Geyser, Floodgate, ViaVersion, and ViaBackwards pre-configured out of the box.
+            - 🌐 **Public Access**: Open for Java (25565), Bedrock (19132), and Playit.gg tunnels (`joinmc.link`).
+          files: |
+            release_assets/SMP-Minecraft-Server-Android.apk
+            release_assets/SMP-Minecraft-Server-iOS-Project.zip
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
