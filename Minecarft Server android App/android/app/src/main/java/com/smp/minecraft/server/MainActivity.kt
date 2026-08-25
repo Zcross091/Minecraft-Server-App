@@ -46,7 +46,8 @@ class MainActivity : AppCompatActivity() {
     inner class AndroidServerBridge(private val context: Context) {
 
         @JavascriptInterface
-        def getDeviceInfo(): String {
+        fun getDeviceInfo(): String {
+
             val totalMem = Runtime.getRuntime().totalMemory() / (1024 * 1024)
             val freeMem = Runtime.getRuntime().freeMemory() / (1024 * 1024)
             val json = JSONObject()
