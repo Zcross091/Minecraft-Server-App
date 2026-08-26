@@ -98,6 +98,21 @@
           </div>
         </div>
       </div>
+
+      <!-- Live Connected Players & Anti-Grief Moderation Card -->
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <span><span class="icon">🛡️</span> Connected Players & Anti-Grief</span>
+          <span class="badge" id="lblPlayerCountBadge">2 Online</span>
+        </div>
+        <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+          <input type="text" id="inputAddPlayer" class="input-text" placeholder="Enter player gamertag / username..." />
+          <button id="btnAddPlayer" class="btn btn-secondary" style="width: auto; padding: 0 14px; white-space: nowrap;">
+            ➕ Add
+          </button>
+        </div>
+        <div id="playersList"></div>
+      </div>
     </section>
 
     <!-- TAB 2: PREINSTALLED REQUIREMENTS & ADDONS -->
@@ -116,6 +131,34 @@
 
     <!-- TAB 3: CUSTOM PLUGINS & MODS MANAGER -->
     <section id="tab-plugins" class="tab-page" style="display: none;">
+      <!-- 1-Tap Gameplay & Modpack Presets Card -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🚀</span> 1-Tap Gameplay Presets
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Instantly apply pre-configured server styles and optimized plugin bundles:
+        </p>
+        <div class="grid-2" style="gap: 10px;">
+          <button class="btn btn-secondary btn-preset" data-preset="vanilla-crossplay" style="text-align: left; padding: 12px; font-size: 0.85rem; height: auto;">
+            <strong>⚔️ Vanilla+ SMP</strong><br>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Land claims & player ranks</span>
+          </button>
+          <button class="btn btn-secondary btn-preset" data-preset="voice-map" style="text-align: left; padding: 12px; font-size: 0.85rem; height: auto;">
+            <strong>🎙️ Voice & 3D Map</strong><br>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Proximity audio + BlueMap</span>
+          </button>
+          <button class="btn btn-secondary btn-preset" data-preset="hardcore-pvp" style="text-align: left; padding: 12px; font-size: 0.85rem; height: auto;">
+            <strong>💀 Hardcore Anarchy</strong><br>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Hard difficulty, raw PVP</span>
+          </button>
+          <button class="btn btn-secondary btn-preset" data-preset="creative-builder" style="text-align: left; padding: 12px; font-size: 0.85rem; height: auto;">
+            <strong>🪄 Creative Builder</strong><br>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">WorldEdit & Peaceful</span>
+          </button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-title" style="justify-content: space-between;">
           <span><span class="icon">🧩</span> Custom Plugins & Mods</span>
@@ -196,18 +239,19 @@
 
     <!-- TAB 6: SETTINGS & STORAGE SELECTOR -->
     <section id="tab-settings" class="tab-page" style="display: none;">
+      <!-- Server Storage & Memory -->
       <div class="card">
         <div class="card-title">
           <span class="icon">⚙️</span> Server Storage & Config
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="settingServerName">Default Server Name</label>
+          <label class="form-label" for="settingServerName">Server Name</label>
           <input type="text" id="settingServerName" class="input-text" value="SMP" />
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="settingFolder">User Selected Storage Folder</label>
+          <label class="form-label" for="settingFolder">Server Storage Directory</label>
           <div style="display: flex; gap: 8px;">
             <input type="text" id="settingFolder" class="input-text" value="/sdcard/Download/MinecraftServers/SMP" />
             <button id="btnBrowseFolder" class="btn btn-secondary" style="width: auto; padding: 0 14px;">Browse</button>
@@ -215,13 +259,102 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="settingRam">Server RAM Allocation: <span id="lblRamVal" style="color: var(--primary);">4 GB</span></label>
+          <label class="form-label" for="settingRam">JVM RAM Allocation: <span id="lblRamVal" style="color: var(--primary);">4 GB</span></label>
           <input type="range" id="settingRam" min="1" max="12" step="1" value="4" style="width: 100%; accent-color: var(--primary);" />
         </div>
 
         <button id="btnSaveConfig" class="btn btn-primary">
-          <span>💾</span> Save Settings
+          <span>💾</span> Save General Settings
         </button>
+      </div>
+
+      <!-- Graphical server.properties Rules -->
+      <div class="card">
+        <div class="card-title">
+          <span class="icon">🎛️</span> Server Rules & Properties
+        </div>
+
+        <div class="grid-2" style="margin-bottom: 12px;">
+          <div class="form-group">
+            <label class="form-label" for="settingGamemode">Game Mode</label>
+            <select id="settingGamemode" class="input-text" style="background: rgba(15, 23, 42, 0.9); color: white;">
+              <option value="SURVIVAL">Survival</option>
+              <option value="CREATIVE">Creative</option>
+              <option value="ADVENTURE">Adventure</option>
+              <option value="SPECTATOR">Spectator</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="settingDifficulty">Difficulty</label>
+            <select id="settingDifficulty" class="input-text" style="background: rgba(15, 23, 42, 0.9); color: white;">
+              <option value="PEACEFUL">Peaceful</option>
+              <option value="EASY">Easy</option>
+              <option value="NORMAL">Normal</option>
+              <option value="HARD">Hard</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem;">Player vs Player (PVP)</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Allow players to attack each other</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="settingPvp" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem;">Allow Offline / Cracked Accounts</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Disables online-mode authentication</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="settingOnlineMode">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border-color);">
+          <div>
+            <div style="font-weight: 600; font-size: 0.9rem;">Enable Whitelist</div>
+            <div style="font-size: 0.75rem; color: var(--text-muted);">Only approved players can join</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="settingWhitelist">
+            <span class="slider"></span>
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-top: 12px;">
+          <label class="form-label" for="settingViewDistance">View Distance: <span id="lblViewDistance" style="color: var(--primary);">8 Chunks</span></label>
+          <input type="range" id="settingViewDistance" min="4" max="16" step="1" value="8" style="width: 100%; accent-color: var(--primary);" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settingMotd">Server Description (MOTD)</label>
+          <input type="text" id="settingMotd" class="input-text" value="A Crossplay Minecraft SMP Server" />
+        </div>
+
+        <button id="btnSaveProperties" class="btn btn-secondary" style="margin-top: 6px;">
+          <span>📝</span> Apply Properties
+        </button>
+      </div>
+
+      <!-- World Backups & Snapshot Export -->
+      <div class="card">
+        <div class="card-title" style="justify-content: space-between;">
+          <span><span class="icon">💾</span> World Backups & Snapshots</span>
+          <button id="btnCreateBackup" class="btn btn-secondary" style="width: auto; padding: 6px 12px; font-size: 0.8rem;">
+            <span>📦</span> Backup Now
+          </button>
+        </div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">
+          Take instant snapshots of your world, nether, and player data before making changes.
+        </p>
+        <div id="backupList"></div>
       </div>
     </section>
 

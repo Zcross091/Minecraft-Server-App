@@ -140,7 +140,131 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    // 8. Terminal Logs Rendering
+    // 8. Players & Moderation List
+    const playersList = document.getElementById('playersList');
+    const lblPlayerCountBadge = document.getElementById('lblPlayerCountBadge');
+    if (playersList && state.players) {
+      if (lblPlayerCountBadge) {
+        lblPlayerCountBadge.textContent = `${state.players.filter(p => !p.isBanned).length} Active`;
+      }
+      playersList.innerHTML = state.players.map(p => `
+        <div class="plugin-card" style="padding: 10px 14px; margin-bottom: 8px;">
+          <div class="plugin-info">
+            <div style="font-size: 1.2rem;">${p.platform === 'JAVA' ? '☕' : '📱'}</div>
+            <div>
+              <div style="font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
+                ${escapeHtml(p.username)}
+                ${p.isOp ? '<span class="badge" style="padding: 2px 6px; font-size: 0.65rem; background: rgba(234, 179, 8, 0.2); border-color: rgba(234, 179, 8, 0.4); color: #facc15;">👑 OP</span>' : ''}
+                ${p.isWhitelisted ? '<span class="badge" style="padding: 2px 6px; font-size: 0.65rem;">🛡️ Whitelist</span>' : ''}
+                ${p.isBanned ? '<span class="badge" style="padding: 2px 6px; font-size: 0.65rem; background: rgba(239, 68, 68, 0.2); color: #f87171;">🚫 Banned</span>' : ''}
+              </div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${p.platform} Edition • ${p.ping || 20}ms ping</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-secondary btn-player-op" data-user="${escapeHtml(p.username)}" style="width: auto; padding: 4px 8px; font-size: 0.75rem;">
+              ${p.isOp ? 'De-OP' : 'OP'}
+            </button>
+            <button class="btn btn-secondary btn-player-kick" data-user="${escapeHtml(p.username)}" style="width: auto; padding: 4px 8px; font-size: 0.75rem;">
+              Kick
+            </button>
+            <button class="btn btn-secondary btn-player-ban" data-user="${escapeHtml(p.username)}" style="width: auto; padding: 4px 8px; font-size: 0.75rem; color: ${p.isBanned ? '#4ade80' : '#f87171'};">
+              ${p.isBanned ? 'Unban' : 'Ban'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      // Player Action Handlers
+      document.querySelectorAll('.btn-player-op').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const user = e.currentTarget.getAttribute('data-user');
+          serverEngine.toggleOp(user);
+        });
+      });
+      document.querySelectorAll('.btn-player-kick').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const user = e.currentTarget.getAttribute('data-user');
+          serverEngine.kickPlayer(user);
+        });
+      });
+      document.querySelectorAll('.btn-player-ban').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const user = e.currentTarget.getAttribute('data-user');
+          const player = state.players.find(p => p.username === user);
+          if (player && player.isBanned) {
+            serverEngine.unbanPlayer(user);
+          } else {
+            serverEngine.banPlayer(user);
+          }
+        });
+      });
+    }
+
+    // 9. World Backups List
+    const backupList = document.getElementById('backupList');
+    if (backupList && state.backups) {
+      backupList.innerHTML = state.backups.length === 0 ? '<div style="color:var(--text-muted); font-size:0.85rem;">No world backups created yet.</div>' : state.backups.map(b => `
+        <div class="plugin-card" style="padding: 10px 14px; margin-bottom: 8px;">
+          <div class="plugin-info">
+            <div style="font-size: 1.2rem;">📦</div>
+            <div>
+              <div style="font-weight: 700; font-size: 0.9rem;">${escapeHtml(b.name)}</div>
+              <div style="font-size: 0.75rem; color: var(--text-muted);">${b.timestamp} • ${b.sizeMB} MB (.zip snapshot)</div>
+            </div>
+          </div>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn btn-secondary btn-restore-backup" data-id="${escapeHtml(b.id)}" style="width: auto; padding: 4px 8px; font-size: 0.75rem;">
+              Restore
+            </button>
+            <button class="btn btn-secondary btn-delete-backup" data-id="${escapeHtml(b.id)}" style="width: auto; padding: 4px 8px; font-size: 0.75rem; color: #f87171;">
+              🗑️
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      document.querySelectorAll('.btn-restore-backup').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          if (confirm('Restore world files from this backup? Current world progress will be reverted.')) {
+            serverEngine.restoreBackup(id);
+          }
+        });
+      });
+
+      document.querySelectorAll('.btn-delete-backup').forEach(b => {
+        b.addEventListener('click', (e) => {
+          const id = e.currentTarget.getAttribute('data-id');
+          if (confirm('Delete this world backup snapshot?')) {
+            serverEngine.deleteBackup(id);
+          }
+        });
+      });
+    }
+
+    // 10. Sync Settings Inputs
+    const settingGamemode = document.getElementById('settingGamemode');
+    const settingDifficulty = document.getElementById('settingDifficulty');
+    const settingPvp = document.getElementById('settingPvp');
+    const settingOnlineMode = document.getElementById('settingOnlineMode');
+    const settingWhitelist = document.getElementById('settingWhitelist');
+    const settingViewDistance = document.getElementById('settingViewDistance');
+    const lblViewDistance = document.getElementById('lblViewDistance');
+    const settingMotd = document.getElementById('settingMotd');
+
+    if (settingGamemode && state.gameMode) settingGamemode.value = state.gameMode;
+    if (settingDifficulty && state.difficulty) settingDifficulty.value = state.difficulty;
+    if (settingPvp && state.pvp !== undefined) settingPvp.checked = state.pvp;
+    if (settingOnlineMode && state.onlineMode !== undefined) settingOnlineMode.checked = !state.onlineMode; // Checked if allowing offline/cracked
+    if (settingWhitelist && state.whitelistEnabled !== undefined) settingWhitelist.checked = state.whitelistEnabled;
+    if (settingViewDistance && state.viewDistance) {
+      settingViewDistance.value = state.viewDistance;
+      if (lblViewDistance) lblViewDistance.textContent = `${state.viewDistance} Chunks`;
+    }
+    if (settingMotd && state.motd) settingMotd.value = state.motd;
+
+    // 11. Terminal Logs Rendering
     terminalBox.innerHTML = state.logs.map(log => {
       let typeClass = 'INFO';
       if (log.includes('[SUCCESS]')) typeClass = 'SUCCESS';
@@ -153,6 +277,85 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Auto-scroll to bottom of terminal
     terminalBox.scrollTop = terminalBox.scrollHeight;
+  }
+
+  // --- Add Player Button Handler ---
+  const inputAddPlayer = document.getElementById('inputAddPlayer');
+  const btnAddPlayer = document.getElementById('btnAddPlayer');
+  if (btnAddPlayer && inputAddPlayer) {
+    btnAddPlayer.addEventListener('click', () => {
+      const user = inputAddPlayer.value.trim();
+      if (user) {
+        serverEngine.addPlayer(user, user.startsWith('.') || user.startsWith('*') ? 'BEDROCK' : 'JAVA');
+        inputAddPlayer.value = '';
+      }
+    });
+    inputAddPlayer.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const user = inputAddPlayer.value.trim();
+        if (user) {
+          serverEngine.addPlayer(user, 'JAVA');
+          inputAddPlayer.value = '';
+        }
+      }
+    });
+  }
+
+  // --- 1-Tap Modpack Preset Handlers ---
+  document.querySelectorAll('.btn-preset').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const presetId = e.currentTarget.getAttribute('data-preset');
+      if (confirm(`Apply the ${presetId} gameplay preset to your server?`)) {
+        serverEngine.applyPreset(presetId);
+        alert('Preset applied successfully!');
+      }
+    });
+  });
+
+  // --- Backup Creation Handler ---
+  const btnCreateBackup = document.getElementById('btnCreateBackup');
+  if (btnCreateBackup) {
+    btnCreateBackup.addEventListener('click', () => {
+      const name = prompt('Enter a name for this world backup snapshot:', `Backup_${new Date().toLocaleDateString().replace(/\//g,'-')}`);
+      if (name !== null) {
+        serverEngine.createWorldBackup(name);
+        alert('World backup created and saved to phone storage!');
+      }
+    });
+  }
+
+  // --- Server Properties Save Handler ---
+  const btnSaveProperties = document.getElementById('btnSaveProperties');
+  if (btnSaveProperties) {
+    btnSaveProperties.addEventListener('click', () => {
+      const settingGamemode = document.getElementById('settingGamemode');
+      const settingDifficulty = document.getElementById('settingDifficulty');
+      const settingPvp = document.getElementById('settingPvp');
+      const settingOnlineMode = document.getElementById('settingOnlineMode');
+      const settingWhitelist = document.getElementById('settingWhitelist');
+      const settingViewDistance = document.getElementById('settingViewDistance');
+      const settingMotd = document.getElementById('settingMotd');
+
+      serverEngine.updateConfig({
+        gameMode: settingGamemode ? settingGamemode.value : 'SURVIVAL',
+        difficulty: settingDifficulty ? settingDifficulty.value : 'NORMAL',
+        pvp: settingPvp ? settingPvp.checked : true,
+        onlineMode: settingOnlineMode ? !settingOnlineMode.checked : true, // Inverted: checked = allow offline/cracked
+        whitelistEnabled: settingWhitelist ? settingWhitelist.checked : false,
+        viewDistance: settingViewDistance ? parseInt(settingViewDistance.value, 10) : 8,
+        motd: settingMotd ? settingMotd.value.trim() : 'A Crossplay Minecraft SMP Server'
+      });
+
+      alert('Server properties applied successfully!');
+    });
+  }
+
+  const settingViewDistance = document.getElementById('settingViewDistance');
+  const lblViewDistance = document.getElementById('lblViewDistance');
+  if (settingViewDistance && lblViewDistance) {
+    settingViewDistance.addEventListener('input', (e) => {
+      lblViewDistance.textContent = `${e.target.value} Chunks`;
+    });
   }
 
   // --- Button Event Handlers ---
@@ -291,6 +494,6 @@ Crossplay & Multi-version support enabled (Java & Bedrock)!`;
   });
 
   function escapeHtml(str) {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    return String(str || '').replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
   }
 });

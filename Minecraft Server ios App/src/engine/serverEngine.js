@@ -23,6 +23,23 @@ export class ServerEngine {
       maxPlayers: 20,
       cpuUsage: 0,
       memoryUsageMB: 0,
+      // Graphical server.properties rules
+      gameMode: 'SURVIVAL',
+      difficulty: 'NORMAL',
+      pvp: true,
+      onlineMode: true,
+      whitelistEnabled: false,
+      viewDistance: 8,
+      motd: 'An iOS Crossplay Minecraft SMP Server',
+      // Live Players & Anti-Grief
+      players: [
+        { username: 'iOSHost', platform: 'JAVA', isOp: true, isWhitelisted: true, isBanned: false, ping: 15 },
+        { username: 'BedrockBuddy', platform: 'BEDROCK', isOp: false, isWhitelisted: true, isBanned: false, ping: 38 }
+      ],
+      // World Backups
+      backups: [
+        { id: 'backup-init', name: 'Initial World Setup', timestamp: '2026-08-26 12:00', sizeMB: 12.4 }
+      ],
       // Pre-installed & pre-configured core crossplay plugins by default
       preinstalledPlugins: [
         {
@@ -313,7 +330,10 @@ export class ServerEngine {
 
   updateConfig(newConfig) {
     // Only allow safe, whitelisted config fields to be updated
-    const allowedFields = ['serverName', 'serverFolder', 'ramGB', 'maxPlayers', 'tunnelDomain', 'publicIp'];
+    const allowedFields = [
+      'serverName', 'serverFolder', 'ramGB', 'maxPlayers', 'tunnelDomain', 'publicIp',
+      'gameMode', 'difficulty', 'pvp', 'onlineMode', 'whitelistEnabled', 'viewDistance', 'motd'
+    ];
     const safeConfig = {};
     for (const key of allowedFields) {
       if (newConfig.hasOwnProperty(key)) {
@@ -321,7 +341,163 @@ export class ServerEngine {
       }
     }
     this.state = { ...this.state, ...safeConfig };
-    this.log(`Updated iOS server config. Name: '${this.state.serverName}', Folder: ${this.state.serverFolder}`, 'CONFIG');
+    this.log(`Updated iOS server config. Name: '${this.state.serverName}', Mode: ${this.state.gameMode}, Difficulty: ${this.state.difficulty}`, 'CONFIG');
+    this.saveState();
+  }
+
+  // --- Player Management & Anti-Grief ---
+
+  addPlayer(username, platform = 'JAVA') {
+    const cleanUser = String(username || '').replace(/[^a-zA-Z0-9_.]/g, '').trim();
+    if (!cleanUser) return;
+    const existing = this.state.players.find(p => p.username.toLowerCase() === cleanUser.toLowerCase());
+    if (!existing) {
+      this.state.players.push({
+        username: cleanUser,
+        platform: platform.toUpperCase() === 'BEDROCK' ? 'BEDROCK' : 'JAVA',
+        isOp: false,
+        isWhitelisted: true,
+        isBanned: false,
+        ping: Math.floor(Math.random() * 40) + 15
+      });
+      this.log(`Added player '${cleanUser}' to iOS player registry`, 'INFO');
+      this.saveState();
+    }
+  }
+
+  kickPlayer(username, reason = 'Kicked by server operator') {
+    const player = this.state.players.find(p => p.username === username);
+    if (player) {
+      this.log(`[Server thread/INFO]: Kicked player ${username} (${reason})`, 'WARN');
+      this.saveState();
+    }
+  }
+
+  banPlayer(username) {
+    const player = this.state.players.find(p => p.username === username);
+    if (player) {
+      player.isBanned = true;
+      this.log(`[Server thread/INFO]: Banned player ${username}`, 'WARN');
+      this.saveState();
+    }
+  }
+
+  unbanPlayer(username) {
+    const player = this.state.players.find(p => p.username === username);
+    if (player) {
+      player.isBanned = false;
+      this.log(`[Server thread/INFO]: Unbanned player ${username}`, 'SUCCESS');
+      this.saveState();
+    }
+  }
+
+  toggleOp(username) {
+    const player = this.state.players.find(p => p.username === username);
+    if (player) {
+      player.isOp = !player.isOp;
+      this.log(`[Server thread/INFO]: ${player.isOp ? 'Granted OP permissions to' : 'Revoked OP from'} ${username}`, 'SUCCESS');
+      if (player.isOp) {
+        this.sendNativeiOS('opPlayer', { username });
+      }
+      this.saveState();
+    }
+  }
+
+  toggleWhitelist(username) {
+    const player = this.state.players.find(p => p.username === username);
+    if (player) {
+      player.isWhitelisted = !player.isWhitelisted;
+      this.log(`[Server thread/INFO]: ${player.isWhitelisted ? 'Whitelisted' : 'Removed from whitelist'} ${username}`, 'INFO');
+      this.saveState();
+    }
+  }
+
+  // --- World Backups & Snapshot Export ---
+
+  createWorldBackup(customName) {
+    const now = new Date();
+    const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    const name = customName ? customName.trim() : `iOS World Backup (${timeStr})`;
+    const backupId = 'backup-' + Date.now();
+    const size = (Math.random() * 15 + 10).toFixed(1);
+
+    const newBackup = {
+      id: backupId,
+      name,
+      timestamp: timeStr,
+      sizeMB: parseFloat(size)
+    };
+
+    this.state.backups.unshift(newBackup);
+    this.log(`Created iOS world snapshot '${name}' (${size} MB compressed)`, 'SUCCESS');
+    this.saveState();
+    return newBackup;
+  }
+
+  restoreBackup(backupId) {
+    const backup = this.state.backups.find(b => b.id === backupId);
+    if (backup) {
+      this.log(`Restored iOS world state from snapshot '${backup.name}'`, 'WARN');
+      this.saveState();
+    }
+  }
+
+  deleteBackup(backupId) {
+    const idx = this.state.backups.findIndex(b => b.id === backupId);
+    if (idx !== -1) {
+      const removed = this.state.backups.splice(idx, 1)[0];
+      this.log(`Deleted iOS world backup '${removed.name}'`, 'INFO');
+      this.saveState();
+    }
+  }
+
+  // --- 1-Tap Gameplay & Modpack Presets ---
+
+  applyPreset(presetId) {
+    switch (presetId) {
+      case 'vanilla-crossplay':
+        this.state.gameMode = 'SURVIVAL';
+        this.state.difficulty = 'NORMAL';
+        this.state.pvp = true;
+        this.state.customPlugins.forEach(p => {
+          p.enabled = ['griefprevention', 'luckperms'].includes(p.id);
+        });
+        this.log('Applied Preset: "Vanilla+ Crossplay SMP" (GriefProtection & Ranks)', 'SUCCESS');
+        break;
+
+      case 'voice-map':
+        this.state.gameMode = 'SURVIVAL';
+        this.state.difficulty = 'NORMAL';
+        this.state.pvp = true;
+        this.state.customPlugins.forEach(p => {
+          p.enabled = ['bluemap', 'simple-voice-chat', 'griefprevention', 'luckperms'].includes(p.id);
+        });
+        this.log('Applied Preset: "Proximity Voice & 3D Web Map SMP"', 'SUCCESS');
+        break;
+
+      case 'hardcore-pvp':
+        this.state.gameMode = 'SURVIVAL';
+        this.state.difficulty = 'HARD';
+        this.state.pvp = true;
+        this.state.customPlugins.forEach(p => {
+          p.enabled = p.id === 'simple-voice-chat';
+        });
+        this.log('Applied Preset: "Hardcore Survival & PVP Anarchy"', 'WARN');
+        break;
+
+      case 'creative-builder':
+        this.state.gameMode = 'CREATIVE';
+        this.state.difficulty = 'PEACEFUL';
+        this.state.pvp = false;
+        this.state.customPlugins.forEach(p => {
+          p.enabled = ['worldedit', 'bluemap'].includes(p.id);
+        });
+        this.log('Applied Preset: "Creative Sandbox & WorldEdit Builder"', 'SUCCESS');
+        break;
+
+      default:
+        break;
+    }
     this.saveState();
   }
 

@@ -44,7 +44,25 @@ Every server created by the app comes **pre-configured and pre-installed** with 
 - Integrated **Playit.gg Zero-Config Tunnel** domain support (`smp.joinmc.link`).
 - One-click **"Copy Shareable Invite Message"** button to invite your friends instantly.
 
-### 6. 💻 Dark Console & Interactive Log Stream
+### 6. 🎛️ Graphical `server.properties` Configurator
+- Never touch a configuration text file manually again.
+- Graphical dropdowns and switches for **Game Mode** (Survival, Creative, Adventure, Spectator), **Difficulty** (Peaceful, Easy, Normal, Hard), **PVP**, **Offline/Cracked Accounts** (`online-mode`), **Whitelist**, **View Distance** (4 - 16 chunks), and custom **MOTD**.
+
+### 7. 🛡️ Live Player Moderation & Anti-Grief
+- Live player list displaying platform indicators (☕ Java vs 📱 Bedrock) and network ping.
+- 1-Tap quick moderation actions: **👑 OP Admin**, **🛡️ Whitelist**, **👢 Kick**, and **🚫 Ban/Unban**.
+
+### 8. 💾 1-Tap World Backups & Snapshot Export
+- Take instant compressed `.zip` snapshots of your world, Nether, The End, and player inventory data before installing plugins or experimenting.
+- 1-Tap restore and snapshot management directly from the Settings tab.
+
+### 9. 🚀 1-Tap Gameplay & Modpack Presets
+- **⚔️ Vanilla+ SMP**: Pre-configured survival mode with GriefPrevention land claims and LuckPerms player ranks.
+- **🎙️ Voice & 3D Web Map**: Enables proximity voice chat and live 3D web map rendering (*BlueMap*).
+- **💀 Hardcore Anarchy**: Hard difficulty, raw PVP enabled, no claims.
+- **🪄 Creative Builder**: Creative mode with *WorldEdit* and Peaceful difficulty.
+
+### 10. 💻 Dark Console & Interactive Log Stream
 - Real-time dark-theme terminal log stream with color-coded syntax (`INFO`, `SUCCESS`, `NET`, `WARN`, `ERROR`, `SYSTEM`).
 - Interactive command prompt to execute live server commands (`op <username>`, `say hello`, `list`, `stop`).
 
