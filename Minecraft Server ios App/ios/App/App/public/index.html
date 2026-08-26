@@ -1705,24 +1705,26 @@ document.addEventListener('DOMContentLoaded', () => {
   renderState(serverEngine.state);
 
   function renderState(state) {
+    if (!state) return;
+
     // 1. Status Indicator
-    statusPill.className = `status-pill ${state.status.toLowerCase()}`;
-    statusText.textContent = state.status;
+    if (statusPill) statusPill.className = `status-pill ${(state.status || 'STOPPED').toLowerCase()}`;
+    if (statusText) statusText.textContent = state.status || 'STOPPED';
 
     // 2. Button States
-    btnStart.disabled = state.status !== 'STOPPED';
-    btnStop.disabled = state.status !== 'RUNNING';
-    btnRestart.disabled = state.status !== 'RUNNING';
+    if (btnStart) btnStart.disabled = state.status !== 'STOPPED';
+    if (btnStop) btnStop.disabled = state.status !== 'RUNNING';
+    if (btnRestart) btnRestart.disabled = state.status !== 'RUNNING';
 
     // 3. Stats
-    statPlayers.textContent = `${state.playersOnline} / ${state.maxPlayers}`;
-    statCpu.textContent = `${state.cpuUsage} %`;
-    statRam.textContent = `${state.ramGB}.0 GB`;
-    statRamUsage.textContent = `${state.memoryUsageMB} MB`;
+    if (statPlayers) statPlayers.textContent = `${state.playersOnline || 0} / ${state.maxPlayers || 20}`;
+    if (statCpu) statCpu.textContent = `${state.cpuUsage || 0} %`;
+    if (statRam) statRam.textContent = `${state.ramGB || 4}.0 GB`;
+    if (statRamUsage) statRamUsage.textContent = `${state.memoryUsageMB || 0} MB`;
 
     // 4. Server Config Info
-    infoServerName.value = state.serverName;
-    infoServerFolder.value = state.serverFolder;
+    if (infoServerName) infoServerName.value = state.serverName || 'SMP';
+    if (infoServerFolder) infoServerFolder.value = state.serverFolder || '';
 
     // 5. Credentials (Local Wi-Fi & Global Internet)
     const credLocalJava = document.getElementById('credLocalJava');
@@ -1730,26 +1732,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const modalLocalIpDisplay = document.getElementById('modalLocalIpDisplay');
     const localIp = state.localIp || '192.168.1.10';
 
-    if (credLocalJava) credLocalJava.value = `${localIp}:${state.javaPort}`;
+    if (credLocalJava) credLocalJava.value = `${localIp}:${state.javaPort || 25565}`;
     if (credLocalBedrockIp) credLocalBedrockIp.value = localIp;
     if (modalLocalIpDisplay) modalLocalIpDisplay.textContent = localIp;
 
-    credJava.value = `${state.publicIp}:${state.javaPort}`;
-    credBedrockIp.value = state.publicIp;
-    if (credTunnel && document.activeElement !== credTunnel) credTunnel.value = state.tunnelDomain;
+    if (credJava) credJava.value = `${state.publicIp || '144.24.156.140'}:${state.javaPort || 25565}`;
+    if (credBedrockIp) credBedrockIp.value = state.publicIp || '144.24.156.140';
+    if (credTunnel && document.activeElement !== credTunnel) credTunnel.value = state.tunnelDomain || '';
 
     // 6. Preinstalled Requirements List
-    preinstalledList.innerHTML = state.preinstalledPlugins.map(p => `
-      <div class="plugin-card">
-        <div class="plugin-info">
-          <div class="plugin-icon">${escapeHtml(p.icon)}</div>
-          <div>
-            <div class="plugin-title">${escapeHtml(p.name)} <span class="badge">Preinstalled</span></div>
-            <div class="plugin-desc">${escapeHtml(p.description)}</div>
+    if (preinstalledList && Array.isArray(state.preinstalledPlugins)) {
+      preinstalledList.innerHTML = state.preinstalledPlugins.map(p => `
+        <div class="plugin-card">
+          <div class="plugin-info">
+            <div class="plugin-icon">${escapeHtml(p.icon)}</div>
+            <div>
+              <div class="plugin-title">${escapeHtml(p.name)} <span class="badge">Preinstalled</span></div>
+              <div class="plugin-desc">${escapeHtml(p.description)}</div>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    }
 
     // 7. Custom Plugins List
     customPluginsList.innerHTML = state.customPlugins.map(p => `

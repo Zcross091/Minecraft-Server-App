@@ -124,15 +124,27 @@ class MainActivity : AppCompatActivity() {
                     putExtra("config", serverConfigJson)
                 }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    context.startForegroundService(intent)
+                    try {
+                        ContextCompat.startForegroundService(context, intent)
+                    } catch (e: Exception) {
+                        try {
+                            context.startService(intent)
+                        } catch (err: Exception) {
+                            err.printStackTrace()
+                        }
+                    }
                 } else {
                     context.startService(intent)
                 }
-                mainHandler.post {
-                    Toast.makeText(context, "Minecraft SMP Server Started!", Toast.LENGTH_SHORT).show()
-                }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+            mainHandler.post {
+                try {
+                    Toast.makeText(context.applicationContext, "Minecraft SMP Server Started!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
 
@@ -141,18 +153,26 @@ class MainActivity : AppCompatActivity() {
             try {
                 val intent = Intent(context, ServerEngineService::class.java)
                 context.stopService(intent)
-                mainHandler.post {
-                    Toast.makeText(context, "Minecraft SMP Server Stopped.", Toast.LENGTH_SHORT).show()
-                }
             } catch (e: Exception) {
                 e.printStackTrace()
+            }
+            mainHandler.post {
+                try {
+                    Toast.makeText(context.applicationContext, "Minecraft SMP Server Stopped.", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
 
         @JavascriptInterface
         fun showToast(msg: String) {
             mainHandler.post {
-                Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+                try {
+                    Toast.makeText(context.applicationContext, msg, Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
