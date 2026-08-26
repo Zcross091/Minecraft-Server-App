@@ -80,10 +80,19 @@ document.addEventListener('DOMContentLoaded', () => {
     infoServerName.value = state.serverName;
     infoServerFolder.value = state.serverFolder;
 
-    // 5. Credentials
+    // 5. Credentials (Local Wi-Fi & Global Internet)
+    const credLocalJava = document.getElementById('credLocalJava');
+    const credLocalBedrockIp = document.getElementById('credLocalBedrockIp');
+    const modalLocalIpDisplay = document.getElementById('modalLocalIpDisplay');
+    const localIp = state.localIp || '192.168.1.10';
+
+    if (credLocalJava) credLocalJava.value = `${localIp}:${state.javaPort}`;
+    if (credLocalBedrockIp) credLocalBedrockIp.value = localIp;
+    if (modalLocalIpDisplay) modalLocalIpDisplay.textContent = localIp;
+
     credJava.value = `${state.publicIp}:${state.javaPort}`;
     credBedrockIp.value = state.publicIp;
-    credTunnel.value = state.tunnelDomain;
+    if (credTunnel && document.activeElement !== credTunnel) credTunnel.value = state.tunnelDomain;
 
     // 6. Preinstalled Requirements List
     preinstalledList.innerHTML = state.preinstalledPlugins.map(p => `
@@ -434,26 +443,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  btnCopyInvite.addEventListener('click', () => {
-    const inviteText = `🎮 JOIN MY MINECRAFT SMP CROSSPLAY SERVER! 🎮
+  // --- Global Connection & Playit Setup Modal Controls ---
+  const modalPlayitSetup = document.getElementById('modalPlayitSetup');
+  const btnCloseModal = document.getElementById('btnCloseModal');
+  const btnDismissModal = document.getElementById('btnDismissModal');
+  const btnOpenGlobalGuideDash = document.getElementById('btnOpenGlobalGuideDash');
+  const btnOpenGlobalGuidePub = document.getElementById('btnOpenGlobalGuidePub');
+  const btnOpenPlayitSetup = document.getElementById('btnOpenPlayitSetup');
+  const btnCopyInviteModal = document.getElementById('btnCopyInviteModal');
 
-★ JAVA EDITION (PC / Mac / Linux)
-Server Address: ${serverEngine.state.publicIp}:${serverEngine.state.javaPort}
+  const openConnectionModal = () => {
+    if (modalPlayitSetup) modalPlayitSetup.style.display = 'flex';
+  };
+  const closeConnectionModal = () => {
+    if (modalPlayitSetup) modalPlayitSetup.style.display = 'none';
+  };
 
-★ BEDROCK EDITION (Android / iOS / Windows / Console)
-Server Address: ${serverEngine.state.publicIp}
-Server Port   : ${serverEngine.state.bedrockPort}
+  if (btnOpenGlobalGuideDash) btnOpenGlobalGuideDash.addEventListener('click', openConnectionModal);
+  if (btnOpenGlobalGuidePub) btnOpenGlobalGuidePub.addEventListener('click', openConnectionModal);
+  if (btnOpenPlayitSetup) btnOpenPlayitSetup.addEventListener('click', openConnectionModal);
+  if (btnCloseModal) btnCloseModal.addEventListener('click', closeConnectionModal);
+  if (btnDismissModal) btnDismissModal.addEventListener('click', closeConnectionModal);
 
-🔗 PUBLIC TUNNEL DOMAIN: ${serverEngine.state.tunnelDomain}
+  function generateInviteText() {
+    const localIp = serverEngine.state.localIp || '192.168.1.10';
+    const publicIp = serverEngine.state.publicIp || '144.24.156.140';
+    const tunnel = serverEngine.state.tunnelDomain || 'smp-crossplay.joinmc.link';
+    const javaPort = serverEngine.state.javaPort || 25565;
+    const bedrockPort = serverEngine.state.bedrockPort || 19132;
 
-Crossplay & Multi-version support enabled (Java & Bedrock)!`;
+    return `🎮 JOIN MY MINECRAFT SMP CROSSPLAY SERVER! 🎮
 
-    navigator.clipboard.writeText(inviteText).then(() => {
-      alert('Invite credentials copied to clipboard! Share with your friends!');
+🏠 1. SAME HOME WI-FI (Instant / Zero-Lag):
+• Java Edition (PC/Mac/Linux): ${localIp}:${javaPort}
+• Bedrock (Mobile/Xbox/Switch/Win10): ${localIp} | Port: ${bedrockPort}
+
+🌍 2. WORLDWIDE INTERNET (Remote Friends):
+• Global Address: ${tunnel} (Port ${bedrockPort} for Bedrock)
+• Direct WAN IP : ${publicIp}:${javaPort}
+
+✨ Crossplay enabled: Java & Bedrock players on any version (1.8 - 1.20+) can play together!`;
+  }
+
+  const copyInviteToClipboard = () => {
+    const text = generateInviteText();
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Minecraft Server Connection details copied to clipboard! Share with your friends!');
     }).catch(() => {
-      alert(inviteText);
+      prompt('Copy your Minecraft Server Invite:', text);
     });
-  });
+  };
+
+  btnCopyInvite.addEventListener('click', copyInviteToClipboard);
+  if (btnCopyInviteModal) btnCopyInviteModal.addEventListener('click', copyInviteToClipboard);
 
   // Terminal Command Execution
   btnSendCmd.addEventListener('click', sendCmd);

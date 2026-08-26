@@ -17,6 +17,7 @@ export class ServerEngine {
       version: '1.20.4',
       status: 'STOPPED', // 'STOPPED' | 'STARTING' | 'RUNNING' | 'STOPPING'
       publicTunnelActive: true,
+      localIp: '192.168.1.10', // Local Wi-Fi Network IP
       publicIp: '144.24.156.140', // Detected WAN IP
       tunnelDomain: `smp-${randCode}.joinmc.link`, // Dedicated unique tunnel hostname per device
       playersOnline: 0,

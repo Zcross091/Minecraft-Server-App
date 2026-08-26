@@ -17,6 +17,7 @@ export class ServerEngine {
       version: '1.20.4',
       status: 'STOPPED', // 'STOPPED' | 'STARTING' | 'RUNNING' | 'STOPPING'
       publicTunnelActive: true,
+      localIp: '192.168.1.10', // Local Wi-Fi Network IP
       publicIp: '144.24.156.140', // Detected WAN IP
       tunnelDomain: `smp-${randCode}.joinmc.link`, // Dedicated unique tunnel hostname per device
       playersOnline: 0,
@@ -151,17 +152,15 @@ export class ServerEngine {
   }
 
   async detectNetworkIp() {
-    // 1. Try Native Android Bridge for Local LAN/WiFi IP
+    // 1. Fetch Local Android Wi-Fi Network IP
     try {
       if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.getLocalIpAddress === 'function') {
         const localIp = window.AndroidBridge.getLocalIpAddress();
         if (localIp && /^\d+\.\d+\.\d+\.\d+$/.test(localIp)) {
           this.state.localIp = localIp;
-          // If publicIp is still default placeholder, use local WiFi IP as immediate baseline
-          if (this.state.publicIp === '144.24.156.140') {
-            this.state.publicIp = localIp;
-            this.notify();
-          }
+          this.log(`Detected Local Wi-Fi IP: ${localIp}`, 'NET');
+          this.notify();
+          this.saveState();
         }
       }
     } catch (e) {}
