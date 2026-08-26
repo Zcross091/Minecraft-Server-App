@@ -108,10 +108,15 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="plugin-desc">${escapeHtml(p.description)}</div>
           </div>
         </div>
-        <label class="switch">
-          <input type="checkbox" ${p.enabled ? 'checked' : ''} data-plugin-id="${escapeHtml(p.id)}" class="toggle-plugin">
-          <span class="slider"></span>
-        </label>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <label class="switch" title="Enable/Disable Plugin">
+            <input type="checkbox" ${p.enabled ? 'checked' : ''} data-plugin-id="${escapeHtml(p.id)}" class="toggle-plugin">
+            <span class="slider"></span>
+          </label>
+          <button class="btn btn-secondary btn-delete-plugin" data-plugin-id="${escapeHtml(p.id)}" title="Delete Plugin" style="width:auto; padding:4px 8px; font-size:0.8rem; background:rgba(239, 68, 68, 0.15); border-color:rgba(239,68,68,0.3); color:#f87171;">
+            🗑️
+          </button>
+        </div>
       </div>
     `).join('');
 
@@ -120,6 +125,18 @@ document.addEventListener('DOMContentLoaded', () => {
       chk.addEventListener('change', (e) => {
         const id = e.target.getAttribute('data-plugin-id');
         serverEngine.toggleCustomPlugin(id);
+      });
+    });
+
+    // Attach Plugin Delete Listeners
+    document.querySelectorAll('.btn-delete-plugin').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.getAttribute('data-plugin-id');
+        const plugin = state.customPlugins.find(p => p.id === id);
+        const name = plugin ? plugin.name : 'this plugin';
+        if (confirm(`Uninstall and remove '${name}' from server plugins?`)) {
+          serverEngine.removeCustomPlugin(id);
+        }
       });
     });
 
@@ -159,13 +176,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  const filePluginPicker = document.getElementById('filePluginPicker');
+
   btnUploadPlugin.addEventListener('click', () => {
-    const name = prompt('Enter Custom Plugin / Mod Name:', 'MyCustomPlugin');
-    if (name) {
-      const desc = prompt('Enter description for this plugin:', 'Custom addon for SMP server.');
-      serverEngine.addCustomPlugin({ name, description: desc, icon: '📦' });
+    if (filePluginPicker) {
+      filePluginPicker.click();
+    } else {
+      const name = prompt('Enter Custom Plugin / Mod Name:', 'MyCustomPlugin');
+      if (name) {
+        const desc = prompt('Enter description for this plugin:', 'Custom addon for SMP server.');
+        serverEngine.addCustomPlugin({ name, description: desc, icon: '📦' });
+      }
     }
   });
+
+  if (filePluginPicker) {
+    filePluginPicker.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        const rawName = file.name.replace(/\.(jar|zip)$/i, '');
+        const cleanName = rawName.replace(/[-_]/g, ' ');
+        const sizeKb = (file.size / 1024).toFixed(1);
+        serverEngine.addCustomPlugin({
+          name: cleanName,
+          version: '1.0.0',
+          description: `Installed from ${file.name} (${sizeKb} KB)`,
+          icon: file.name.toLowerCase().endsWith('.zip') ? '🗜️' : '☕'
+        });
+        filePluginPicker.value = '';
+      }
+    });
+  }
 
   btnCopyInvite.addEventListener('click', () => {
     const inviteText = `🎮 JOIN MY MINECRAFT SMP CROSSPLAY SERVER! 🎮
