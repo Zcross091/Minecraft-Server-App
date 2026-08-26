@@ -156,8 +156,13 @@
         </div>
 
         <div class="form-group">
-          <span class="form-label">🔗 Playit.gg Zero-Port Tunnel Domain</span>
-          <input type="text" id="credTunnel" class="input-text" value="smp-crossplay.joinmc.link" readonly />
+          <span class="form-label">🔗 Dedicated Playit.gg Crossplay Tunnel (Unique Per Device)</span>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="credTunnel" class="input-text" value="smp-crossplay.joinmc.link" placeholder="Enter custom domain or generate unique link" />
+            <button id="btnRegenTunnel" class="btn btn-secondary" style="width: auto; padding: 0 14px; white-space: nowrap;" title="Generate new unique join link">
+              🔄 New Link
+            </button>
+          </div>
         </div>
 
         <button id="btnCopyInvite" class="btn btn-primary">

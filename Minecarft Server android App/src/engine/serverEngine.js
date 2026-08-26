@@ -6,6 +6,7 @@
 export class ServerEngine {
   constructor() {
     this.storageKey = 'smp_minecraft_server_state';
+    const randCode = Math.random().toString(36).substring(2, 7);
     this.defaultState = {
       serverName: 'SMP',
       serverFolder: '/sdcard/Download/MinecraftServers/SMP',
@@ -17,7 +18,7 @@ export class ServerEngine {
       status: 'STOPPED', // 'STOPPED' | 'STARTING' | 'RUNNING' | 'STOPPING'
       publicTunnelActive: true,
       publicIp: '144.24.156.140', // Detected WAN IP
-      tunnelDomain: 'smp-crossplay.joinmc.link',
+      tunnelDomain: `smp-${randCode}.joinmc.link`, // Dedicated unique tunnel hostname per device
       playersOnline: 0,
       maxPlayers: 20,
       cpuUsage: 0,
@@ -248,7 +249,7 @@ export class ServerEngine {
       });
 
       this.log('Opening Java Port 25565/tcp and Bedrock Port 19132/udp...', 'NET');
-      this.log('Activating Playit.gg Public Tunnel: smp-crossplay.joinmc.link', 'NET');
+      this.log(`Activating Playit.gg Public Tunnel: ${this.state.tunnelDomain}`, 'NET');
     }, 1200);
 
     setTimeout(() => {
@@ -317,9 +318,18 @@ export class ServerEngine {
     }, 4000);
   }
 
+  regenerateTunnelDomain() {
+    const randCode = Math.random().toString(36).substring(2, 7);
+    this.state.tunnelDomain = `smp-${randCode}.joinmc.link`;
+    this.log(`Generated new unique public tunnel link: ${this.state.tunnelDomain}`, 'NET');
+    this.notify();
+    this.saveState();
+    return this.state.tunnelDomain;
+  }
+
   updateConfig(newConfig) {
     // Only allow safe, whitelisted config fields to be updated
-    const allowedFields = ['serverName', 'serverFolder', 'ramGB', 'maxPlayers'];
+    const allowedFields = ['serverName', 'serverFolder', 'ramGB', 'maxPlayers', 'tunnelDomain', 'publicIp'];
     const safeConfig = {};
     for (const key of allowedFields) {
       if (newConfig.hasOwnProperty(key)) {

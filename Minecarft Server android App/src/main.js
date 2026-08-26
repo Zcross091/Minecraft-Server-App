@@ -208,6 +208,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const btnRegenTunnel = document.getElementById('btnRegenTunnel');
+  if (btnRegenTunnel) {
+    btnRegenTunnel.addEventListener('click', () => {
+      const newDomain = serverEngine.regenerateTunnelDomain();
+      if (credTunnel) credTunnel.value = newDomain;
+    });
+  }
+
+  if (credTunnel) {
+    credTunnel.addEventListener('change', (e) => {
+      const customDomain = e.target.value.trim();
+      if (customDomain) {
+        serverEngine.updateConfig({ tunnelDomain: customDomain });
+      }
+    });
+  }
+
   btnCopyInvite.addEventListener('click', () => {
     const inviteText = `🎮 JOIN MY MINECRAFT SMP CROSSPLAY SERVER! 🎮
 
