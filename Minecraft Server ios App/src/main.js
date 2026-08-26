@@ -1,4 +1,14 @@
-import { serverEngine } from './engine/serverEngine.js';
+// Global Crash-Guard for JS Runtime
+window.addEventListener('error', (e) => {
+  console.error('[App Crash Guard Intercepted Error]:', e.error || e.message);
+  if (typeof serverEngine !== 'undefined' && serverEngine && typeof serverEngine.log === 'function') {
+    serverEngine.log(`[Safe Guard]: Intercepted script warning: ${e.message}`, 'WARN');
+  }
+});
+
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('[App Crash Guard Intercepted Promise Rejection]:', e.reason);
+});
 
 document.addEventListener('DOMContentLoaded', () => {
   // DOM Elements

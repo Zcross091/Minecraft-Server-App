@@ -9,12 +9,14 @@ import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 
 class ServerEngineService : Service() {
 
     private val CHANNEL_ID = "SMP_MINECRAFT_SERVICE_CHANNEL"
     private val NOTIFICATION_ID = 1001
+    private val TAG = "ServerEngineService"
 
     override fun onCreate() {
         super.onCreate()
@@ -38,12 +40,17 @@ class ServerEngineService : Service() {
                 .build()
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                try {
+                    startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+                } catch (e: Throwable) {
+                    Log.w(TAG, "dataSync startForeground failed, falling back", e)
+                    startForeground(NOTIFICATION_ID, notification)
+                }
             } else {
                 startForeground(NOTIFICATION_ID, notification)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (e: Throwable) {
+            Log.w(TAG, "startForegroundSafely failed", e)
         }
     }
 
@@ -59,8 +66,8 @@ class ServerEngineService : Service() {
                 @Suppress("DEPRECATION")
                 stopForeground(true)
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (e: Throwable) {
+            Log.w(TAG, "onDestroy stopForeground error", e)
         }
         super.onDestroy()
     }
@@ -77,8 +84,8 @@ class ServerEngineService : Service() {
                 }
                 val manager = getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager
                 manager?.createNotificationChannel(serviceChannel)
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (e: Throwable) {
+                Log.w(TAG, "createNotificationChannel error", e)
             }
         }
     }
