@@ -302,8 +302,12 @@ export class ServerEngine {
       this.saveState();
 
       // Trigger Native Android Toast/Service if available
-      if (window.AndroidBridge && window.AndroidBridge.startServerService) {
-        window.AndroidBridge.startServerService(JSON.stringify(this.state));
+      try {
+        if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.startServerService === 'function') {
+          window.AndroidBridge.startServerService(JSON.stringify(this.state));
+        }
+      } catch (e) {
+        console.warn('AndroidBridge.startServerService error:', e);
       }
     }, 3000);
   }
@@ -329,8 +333,12 @@ export class ServerEngine {
       this.log('Minecraft server stopped.', 'SYSTEM');
       this.saveState();
 
-      if (window.AndroidBridge && window.AndroidBridge.stopServerService) {
-        window.AndroidBridge.stopServerService();
+      try {
+        if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.stopServerService === 'function') {
+          window.AndroidBridge.stopServerService();
+        }
+      } catch (e) {
+        console.warn('AndroidBridge.stopServerService error:', e);
       }
     }, 2000);
   }
