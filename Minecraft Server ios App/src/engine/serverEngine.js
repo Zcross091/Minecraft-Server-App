@@ -192,7 +192,23 @@ export class ServerEngine {
     try {
       const saved = localStorage.getItem(this.storageKey);
       if (saved) {
-        return { ...this.defaultState, ...JSON.parse(saved) };
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          return {
+            ...this.defaultState,
+            ...parsed,
+            preinstalledPlugins: Array.isArray(parsed.preinstalledPlugins) ? parsed.preinstalledPlugins : this.defaultState.preinstalledPlugins,
+            customPlugins: Array.isArray(parsed.customPlugins) ? parsed.customPlugins : this.defaultState.customPlugins,
+            players: Array.isArray(parsed.players) ? parsed.players : this.defaultState.players,
+            backups: Array.isArray(parsed.backups) ? parsed.backups : this.defaultState.backups,
+            logs: Array.isArray(parsed.logs) ? parsed.logs : this.defaultState.logs,
+            // Always reset volatile process metrics on fresh app launch
+            status: 'STOPPED',
+            cpuUsage: 0,
+            memoryUsageMB: 0,
+            playersOnline: 0
+          };
+        }
       }
     } catch (e) {
       console.warn('Could not load stored state:', e);
@@ -202,7 +218,11 @@ export class ServerEngine {
 
   saveState() {
     try {
-      localStorage.setItem(this.storageKey, JSON.stringify(this.state));
+      const stateToPersist = {
+        ...this.state,
+        logs: Array.isArray(this.state.logs) ? this.state.logs.slice(-50) : []
+      };
+      localStorage.setItem(this.storageKey, JSON.stringify(stateToPersist));
     } catch (e) {
       console.warn('Could not save state:', e);
     }
@@ -329,17 +349,51 @@ export class ServerEngine {
   }
 
   updateConfig(newConfig) {
-    // Only allow safe, whitelisted config fields to be updated
-    const allowedFields = [
-      'serverName', 'serverFolder', 'ramGB', 'maxPlayers', 'tunnelDomain', 'publicIp',
-      'gameMode', 'difficulty', 'pvp', 'onlineMode', 'whitelistEnabled', 'viewDistance', 'motd'
-    ];
+    const stripHtml = (str) => String(str || '').replace(/<[^>]*>/g, '');
     const safeConfig = {};
-    for (const key of allowedFields) {
-      if (newConfig.hasOwnProperty(key)) {
-        safeConfig[key] = newConfig[key];
-      }
+
+    if (newConfig.serverName !== undefined) {
+      safeConfig.serverName = stripHtml(newConfig.serverName).trim() || 'SMP';
     }
+    if (newConfig.serverFolder !== undefined) {
+      safeConfig.serverFolder = stripHtml(newConfig.serverFolder).trim() || 'Documents/MinecraftServers/SMP';
+    }
+    if (newConfig.ramGB !== undefined) {
+      safeConfig.ramGB = Math.max(1, Math.min(64, parseInt(newConfig.ramGB, 10) || 4));
+    }
+    if (newConfig.maxPlayers !== undefined) {
+      safeConfig.maxPlayers = Math.max(1, Math.min(500, parseInt(newConfig.maxPlayers, 10) || 20));
+    }
+    if (newConfig.tunnelDomain !== undefined) {
+      safeConfig.tunnelDomain = stripHtml(newConfig.tunnelDomain).trim();
+    }
+    if (newConfig.publicIp !== undefined) {
+      safeConfig.publicIp = stripHtml(newConfig.publicIp).trim();
+    }
+    if (newConfig.gameMode !== undefined) {
+      const mode = String(newConfig.gameMode).toUpperCase();
+      safeConfig.gameMode = ['SURVIVAL', 'CREATIVE', 'ADVENTURE', 'SPECTATOR'].includes(mode) ? mode : 'SURVIVAL';
+    }
+    if (newConfig.difficulty !== undefined) {
+      const diff = String(newConfig.difficulty).toUpperCase();
+      safeConfig.difficulty = ['PEACEFUL', 'EASY', 'NORMAL', 'HARD'].includes(diff) ? diff : 'NORMAL';
+    }
+    if (newConfig.pvp !== undefined) {
+      safeConfig.pvp = Boolean(newConfig.pvp);
+    }
+    if (newConfig.onlineMode !== undefined) {
+      safeConfig.onlineMode = Boolean(newConfig.onlineMode);
+    }
+    if (newConfig.whitelistEnabled !== undefined) {
+      safeConfig.whitelistEnabled = Boolean(newConfig.whitelistEnabled);
+    }
+    if (newConfig.viewDistance !== undefined) {
+      safeConfig.viewDistance = Math.max(2, Math.min(32, parseInt(newConfig.viewDistance, 10) || 8));
+    }
+    if (newConfig.motd !== undefined) {
+      safeConfig.motd = stripHtml(newConfig.motd).trim() || 'An iOS Crossplay Minecraft SMP Server';
+    }
+
     this.state = { ...this.state, ...safeConfig };
     this.log(`Updated iOS server config. Name: '${this.state.serverName}', Mode: ${this.state.gameMode}, Difficulty: ${this.state.difficulty}`, 'CONFIG');
     this.saveState();
@@ -348,7 +402,7 @@ export class ServerEngine {
   // --- Player Management & Anti-Grief ---
 
   addPlayer(username, platform = 'JAVA') {
-    const cleanUser = String(username || '').replace(/[^a-zA-Z0-9_.]/g, '').trim();
+    const cleanUser = String(username || '').replace(/<[^>]*>/g, '').replace(/[^a-zA-Z0-9_. *]/g, '').trim();
     if (!cleanUser) return;
     const existing = this.state.players.find(p => p.username.toLowerCase() === cleanUser.toLowerCase());
     if (!existing) {
@@ -366,48 +420,48 @@ export class ServerEngine {
   }
 
   kickPlayer(username, reason = 'Kicked by server operator') {
-    const player = this.state.players.find(p => p.username === username);
+    const player = this.state.players.find(p => p.username.toLowerCase() === String(username).toLowerCase());
     if (player) {
-      this.log(`[Server thread/INFO]: Kicked player ${username} (${reason})`, 'WARN');
+      this.log(`[Server thread/INFO]: Kicked player ${player.username} (${reason})`, 'WARN');
       this.saveState();
     }
   }
 
   banPlayer(username) {
-    const player = this.state.players.find(p => p.username === username);
+    const player = this.state.players.find(p => p.username.toLowerCase() === String(username).toLowerCase());
     if (player) {
       player.isBanned = true;
-      this.log(`[Server thread/INFO]: Banned player ${username}`, 'WARN');
+      this.log(`[Server thread/INFO]: Banned player ${player.username}`, 'WARN');
       this.saveState();
     }
   }
 
   unbanPlayer(username) {
-    const player = this.state.players.find(p => p.username === username);
+    const player = this.state.players.find(p => p.username.toLowerCase() === String(username).toLowerCase());
     if (player) {
       player.isBanned = false;
-      this.log(`[Server thread/INFO]: Unbanned player ${username}`, 'SUCCESS');
+      this.log(`[Server thread/INFO]: Unbanned player ${player.username}`, 'SUCCESS');
       this.saveState();
     }
   }
 
   toggleOp(username) {
-    const player = this.state.players.find(p => p.username === username);
+    const player = this.state.players.find(p => p.username.toLowerCase() === String(username).toLowerCase());
     if (player) {
       player.isOp = !player.isOp;
-      this.log(`[Server thread/INFO]: ${player.isOp ? 'Granted OP permissions to' : 'Revoked OP from'} ${username}`, 'SUCCESS');
+      this.log(`[Server thread/INFO]: ${player.isOp ? 'Granted OP permissions to' : 'Revoked OP from'} ${player.username}`, 'SUCCESS');
       if (player.isOp) {
-        this.sendNativeiOS('opPlayer', { username });
+        this.sendNativeiOS('opPlayer', { username: player.username });
       }
       this.saveState();
     }
   }
 
   toggleWhitelist(username) {
-    const player = this.state.players.find(p => p.username === username);
+    const player = this.state.players.find(p => p.username.toLowerCase() === String(username).toLowerCase());
     if (player) {
       player.isWhitelisted = !player.isWhitelisted;
-      this.log(`[Server thread/INFO]: ${player.isWhitelisted ? 'Whitelisted' : 'Removed from whitelist'} ${username}`, 'INFO');
+      this.log(`[Server thread/INFO]: ${player.isWhitelisted ? 'Whitelisted' : 'Removed from whitelist'} ${player.username}`, 'INFO');
       this.saveState();
     }
   }
@@ -415,9 +469,10 @@ export class ServerEngine {
   // --- World Backups & Snapshot Export ---
 
   createWorldBackup(customName) {
+    const stripHtml = (str) => String(str || '').replace(/<[^>]*>/g, '').trim();
     const now = new Date();
     const timeStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    const name = customName ? customName.trim() : `iOS World Backup (${timeStr})`;
+    const name = customName ? (stripHtml(customName) || `iOS World Backup (${timeStr})`) : `iOS World Backup (${timeStr})`;
     const backupId = 'backup-' + Date.now();
     const size = (Math.random() * 15 + 10).toFixed(1);
 
@@ -537,22 +592,43 @@ export class ServerEngine {
   }
 
   executeCommand(cmdStr) {
-    const cmd = cmdStr.trim();
-    if (!cmd) return;
+    const rawCmd = String(cmdStr || '').trim();
+    if (!rawCmd) return;
 
-    this.log(`> ${cmd}`, 'COMMAND');
+    // Strip leading slash if player typed /op, /gamemode, /kick, /ban etc.
+    const cmd = rawCmd.replace(/^\//, '');
+
+    this.log(`> /${cmd}`, 'COMMAND');
     if (this.state.status !== 'RUNNING') {
       this.log('Server is offline. Start the server to execute commands.', 'ERROR');
       return;
     }
 
-    if (cmd.startsWith('op ')) {
-      const username = cmd.split(' ')[1];
-      this.log(`[Server thread/INFO]: Made ${username} a server operator`, 'SUCCESS');
-      this.sendNativeiOS('opPlayer', { username });
-    } else if (cmd === 'list') {
-      this.log(`[Server thread/INFO]: There are ${this.state.playersOnline} of max ${this.state.maxPlayers} players online:`, 'INFO');
-    } else if (cmd === 'stop') {
+    const parts = cmd.split(/\s+/);
+    const mainCmd = parts[0].toLowerCase();
+    const arg1 = parts[1];
+
+    if (mainCmd === 'op' && arg1) {
+      this.toggleOp(arg1);
+      this.log(`[Server thread/INFO]: Made ${arg1} a server operator`, 'SUCCESS');
+      this.sendNativeiOS('opPlayer', { username: arg1 });
+    } else if (mainCmd === 'deop' && arg1) {
+      const p = this.state.players.find(x => x.username.toLowerCase() === arg1.toLowerCase());
+      if (p) p.isOp = false;
+      this.log(`[Server thread/INFO]: Revoked OP status from ${arg1}`, 'INFO');
+      this.saveState();
+    } else if (mainCmd === 'kick' && arg1) {
+      this.kickPlayer(arg1, parts.slice(2).join(' ') || 'Kicked by operator');
+    } else if (mainCmd === 'ban' && arg1) {
+      this.banPlayer(arg1);
+    } else if ((mainCmd === 'pardon' || mainCmd === 'unban') && arg1) {
+      this.unbanPlayer(arg1);
+    } else if (mainCmd === 'whitelist' && arg1 === 'add' && parts[2]) {
+      this.addPlayer(parts[2]);
+    } else if (mainCmd === 'list') {
+      const activePlayers = this.state.players.filter(p => !p.isBanned).map(p => p.username).join(', ');
+      this.log(`[Server thread/INFO]: There are ${this.state.playersOnline} of max ${this.state.maxPlayers} players online: ${activePlayers}`, 'INFO');
+    } else if (mainCmd === 'stop') {
       this.stopServer();
     } else {
       this.log(`[Server thread/INFO]: Executed command '${cmd}'`, 'INFO');

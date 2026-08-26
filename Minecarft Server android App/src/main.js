@@ -243,7 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    // 10. Sync Settings Inputs
+    // 10. Sync Settings Inputs (Only when not focused by the user)
     const settingGamemode = document.getElementById('settingGamemode');
     const settingDifficulty = document.getElementById('settingDifficulty');
     const settingPvp = document.getElementById('settingPvp');
@@ -253,16 +253,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const lblViewDistance = document.getElementById('lblViewDistance');
     const settingMotd = document.getElementById('settingMotd');
 
-    if (settingGamemode && state.gameMode) settingGamemode.value = state.gameMode;
-    if (settingDifficulty && state.difficulty) settingDifficulty.value = state.difficulty;
-    if (settingPvp && state.pvp !== undefined) settingPvp.checked = state.pvp;
-    if (settingOnlineMode && state.onlineMode !== undefined) settingOnlineMode.checked = !state.onlineMode; // Checked if allowing offline/cracked
-    if (settingWhitelist && state.whitelistEnabled !== undefined) settingWhitelist.checked = state.whitelistEnabled;
-    if (settingViewDistance && state.viewDistance) {
+    if (settingGamemode && state.gameMode && document.activeElement !== settingGamemode) settingGamemode.value = state.gameMode;
+    if (settingDifficulty && state.difficulty && document.activeElement !== settingDifficulty) settingDifficulty.value = state.difficulty;
+    if (settingPvp && state.pvp !== undefined && document.activeElement !== settingPvp) settingPvp.checked = state.pvp;
+    if (settingOnlineMode && state.onlineMode !== undefined && document.activeElement !== settingOnlineMode) settingOnlineMode.checked = !state.onlineMode; // Checked if allowing offline/cracked
+    if (settingWhitelist && state.whitelistEnabled !== undefined && document.activeElement !== settingWhitelist) settingWhitelist.checked = state.whitelistEnabled;
+    if (settingViewDistance && state.viewDistance && document.activeElement !== settingViewDistance) {
       settingViewDistance.value = state.viewDistance;
       if (lblViewDistance) lblViewDistance.textContent = `${state.viewDistance} Chunks`;
     }
-    if (settingMotd && state.motd) settingMotd.value = state.motd;
+    if (settingMotd && state.motd && document.activeElement !== settingMotd) settingMotd.value = state.motd;
+    if (settingServerName && state.serverName && document.activeElement !== settingServerName) settingServerName.value = state.serverName;
+    if (settingFolder && state.serverFolder && document.activeElement !== settingFolder) settingFolder.value = state.serverFolder;
+    if (settingRam && state.ramGB && document.activeElement !== settingRam) {
+      settingRam.value = state.ramGB;
+      if (lblRamVal) lblRamVal.textContent = `${state.ramGB} GB`;
+    }
 
     // 11. Terminal Logs Rendering
     terminalBox.innerHTML = state.logs.map(log => {
