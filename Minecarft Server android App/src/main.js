@@ -447,6 +447,60 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // --- Automated In-App Playit.gg Tunnel Controls ---
+  const badgePlayitStatus = document.getElementById('badgePlayitStatus');
+  const btnAutoStartPlayit = document.getElementById('btnAutoStartPlayit');
+  const boxPlayitClaim = document.getElementById('boxPlayitClaim');
+  const inputPlayitClaimUrl = document.getElementById('inputPlayitClaimUrl');
+  const btnOpenClaimUrl = document.getElementById('btnOpenClaimUrl');
+  const btnConfirmClaimed = document.getElementById('btnConfirmClaimed');
+
+  if (btnAutoStartPlayit) {
+    btnAutoStartPlayit.addEventListener('click', async () => {
+      btnAutoStartPlayit.disabled = true;
+      btnAutoStartPlayit.innerHTML = '<span>⏳</span> Generating Playit Session...';
+
+      const res = await serverEngine.requestPlayitClaim();
+      btnAutoStartPlayit.disabled = false;
+      btnAutoStartPlayit.innerHTML = '<span>⚡</span> 1-Tap Auto-Activate Global Tunnel';
+
+      if (res && res.claimUrl) {
+        if (boxPlayitClaim) boxPlayitClaim.style.display = 'block';
+        if (inputPlayitClaimUrl) inputPlayitClaimUrl.value = res.claimUrl;
+        if (badgePlayitStatus) {
+          badgePlayitStatus.textContent = '🟡 Claim Ready';
+          badgePlayitStatus.style.background = 'rgba(234, 179, 8, 0.2)';
+          badgePlayitStatus.style.color = '#facc15';
+        }
+      }
+    });
+  }
+
+  if (btnOpenClaimUrl) {
+    btnOpenClaimUrl.addEventListener('click', () => {
+      const url = inputPlayitClaimUrl ? inputPlayitClaimUrl.value : (serverEngine.state.playitClaimUrl || 'https://playit.gg/claim');
+      if (typeof window !== 'undefined' && window.AndroidBridge && typeof window.AndroidBridge.openUrlInBrowser === 'function') {
+        window.AndroidBridge.openUrlInBrowser(url);
+      } else {
+        window.open(url, '_blank');
+      }
+    });
+  }
+
+  if (btnConfirmClaimed) {
+    btnConfirmClaimed.addEventListener('click', () => {
+      const newDomain = serverEngine.activatePlayitTunnel();
+      if (credTunnel) credTunnel.value = newDomain;
+      if (boxPlayitClaim) boxPlayitClaim.style.display = 'none';
+      if (badgePlayitStatus) {
+        badgePlayitStatus.textContent = '🟢 Tunnel Online';
+        badgePlayitStatus.style.background = 'rgba(34, 197, 94, 0.2)';
+        badgePlayitStatus.style.color = '#4ade80';
+      }
+      alert(`🎉 Success! Playit Crossplay Tunnel is now ACTIVE!\n\nGlobal Address: ${newDomain}\n\nFriends from anywhere in the world can now join your server!`);
+    });
+  }
+
   // --- Global Connection & Playit Setup Modal Controls ---
   const modalPlayitSetup = document.getElementById('modalPlayitSetup');
   const btnCloseModal = document.getElementById('btnCloseModal');

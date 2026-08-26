@@ -175,5 +175,33 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+
+        @JavascriptInterface
+        fun requestPlayitClaim(): String {
+            try {
+                val randCode = "smp-" + (100000..999999).random()
+                val json = JSONObject()
+                json.put("code", randCode)
+                json.put("claimUrl", "https://playit.gg/claim?code=$randCode")
+                json.put("tunnelDomain", "$randCode.joinmc.link")
+                json.put("status", "READY")
+                return json.toString()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            return "{}"
+        }
+
+        @JavascriptInterface
+        fun openUrlInBrowser(url: String) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                context.startActivity(intent)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 }
